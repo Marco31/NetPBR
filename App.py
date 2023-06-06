@@ -125,7 +125,6 @@ def set_PBR(sdw_connect, cisco_interface):
             "route-map " + name_pbr + " permit 10", "match ip address" + nb_ACL, "set ip next-hop" + addr_route]
     for i in range(len(cmd))
         cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
-
     return 0
 
 sdwan1 = {
