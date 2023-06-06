@@ -1,10 +1,6 @@
 from netmiko import ConnectHandler
 from parse import *
 
-# https://www.thegeekstuff.com/2013/08/enable-ssh-cisco/
-
-
-
 def get_int(cisco_name, cisco_interface, sdw_connect):
     cmd = "sh int " + cisco_interface + " | inc drops|bits"
     cisco_output = list((sdw_connect.send_command(cmd)).split('\n'))
@@ -145,20 +141,9 @@ for i in range(len(int_lst)):
 for i in range(len(links)):
     print(get_latency("sdwan1", links[i][0], links[i][1], sdw1_connect))
 
-# for i in range(len(links)):
-#     print(get_latency("sdwan1", links[i][0], links[i][1]))
 
-
-# for i in range(len(cmd)):
-#     output = list((sdw2_connect.send_command(cmd[i])).split('\n'))
-#     for j in range(len(output)):
-#         output[j] = output[j].strip()
-#     print(parser_int("sdwan2", "Gi1/0/" + str(i+1) ,output))
-
-# récupérer latence ping source destination (attention !!)
 # Lien haut : SDWAN1 (10.1.1.1) <-> ... <-> SDWAN2 (10.2.3.2) : ping ip 10.2.3.2 source 10.1.1.1
 # Lien bas : SDWAN1 (10.2.1.1) <-> ... <-> SDWAN2 (10.3.3.2) : ping ip 10.3.3.2 source 10.2.1.1
-# protocol interface, service ACL, netstop
 
 # print(parse("Input queue: {}/{}/{}/{} (size/max/drops/flushes); Total output drops: {}", "Input queue: 0/375/0/0 (size/max/drops/flushes); Total output drops: 0"))
 # bande passante : "BW 1000000 Kbit/sec"
