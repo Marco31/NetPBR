@@ -57,6 +57,8 @@ def get_int(cisco_name, cisco_interface, sdw_connect):
     cisco_int["Unknown_protocol"] = data[9]
     return cisco_int
 
+# Lien haut : SDWAN1 (10.1.1.1) <-> ... <-> SDWAN2 (10.2.3.2) : ping ip 10.2.3.2 source 10.1.1.1
+# Lien bas : SDWAN1 (10.2.1.1) <-> ... <-> SDWAN2 (10.3.3.2) : ping ip 10.3.3.2 source 10.2.1.1
 def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     cmd = "ping ip " + cisco_addr_dest + " source " + cisco_addr_src
     cisco_output = list((sdw_connect.send_command(cmd)).split('\n'))
@@ -105,6 +107,27 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     cisco_ping["round_trip_max"] = data[10]
     return cisco_ping
 
+def set_ACL():
+    #TODO
+    return 0
+
+def set_PBR(sdw_connect, cisco_interface):
+    # Device# configure terminal
+    # Device(config)# interface gigabitethernet 1/0/0
+    # Device(config-if)# no switchport
+    # Device(config-if)# ip policy route-map equal-access       Identifies a route map to use for policy routing on an interface.
+    # Device(config-if)# exit       
+    # Device(config)# route-map equal-access permit 10          Defines the conditions for redistributing routes from one routing protocol into another routing protocol or enables policy-based routing and enters route-map configuration mode.
+    # Device(config-route-map)# match ip address 1              Define the criteria by which packets are examined to learn if they will be policy-based routed.
+    # Device(config-route-map)# set ip next-hop 172.16.6.6      Specifies where to output packets that pass a match clause of a route map for policy routing.
+    # Device(config-route-map)# end
+    cmd = ["int " + cisco_interface, "no switchport", "ip policy route-map" + name_pbr, "exit",
+            "route-map " + name_pbr + " permit 10", "match ip address" + nb_ACL, "set ip next-hop" + addr_route]
+    for i in range(len(cmd))
+        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+
+    return 0
+
 sdwan1 = {
     'device_type': 'cisco_ios',
     'host':   '192.168.8.254',
@@ -125,6 +148,7 @@ sdwan2 = {
     "session_log": 'logs/netmiko_session2.log',
 }
 
+# create SSH connexion
 sdw1_connect = ConnectHandler(**sdwan1)
 sdw1_connect.enable()
 sdw2_connect = ConnectHandler(**sdwan2)
@@ -133,6 +157,7 @@ sdw2_connect.enable()
 machine = ["sdwan1", "sdwan2"]
 int_lst = ["Gi1/0/1", "Gi1/0/2"]
 links = [["10.1.1.1", "10.2.3.2"], ["10.2.1.1", "10.3.3.2"]] #[src, dst], ...]
+
 for i in range(len(int_lst)):
     print(get_int("sdwan1", int_lst[i], sdw1_connect))
 for i in range(len(int_lst)):
@@ -140,18 +165,3 @@ for i in range(len(int_lst)):
 
 for i in range(len(links)):
     print(get_latency("sdwan1", links[i][0], links[i][1], sdw1_connect))
-
-
-# Lien haut : SDWAN1 (10.1.1.1) <-> ... <-> SDWAN2 (10.2.3.2) : ping ip 10.2.3.2 source 10.1.1.1
-# Lien bas : SDWAN1 (10.2.1.1) <-> ... <-> SDWAN2 (10.3.3.2) : ping ip 10.3.3.2 source 10.2.1.1
-
-# print(parse("Input queue: {}/{}/{}/{} (size/max/drops/flushes); Total output drops: {}", "Input queue: 0/375/0/0 (size/max/drops/flushes); Total output drops: 0"))
-# bande passante : "BW 1000000 Kbit/sec"
-# Délais : "DLY 10 usec"
-# Bande passante dispo et total (réel vs. théorique)
-# IP : "Internet address is 192.168.8.197/24"
-# 1000Mb/s
-# input flow-control is on, output flow-control is unsupported
-# I/O 117000 bits/sec /  0 bits/sec
-# , débit (packet entré sortie
-# délais, latence
