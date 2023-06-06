@@ -4,7 +4,13 @@ from parse import *
 # https://www.thegeekstuff.com/2013/08/enable-ssh-cisco/
 
 
-def parser_int(cisco_name, cisco_interface, cisco_output):
+
+def get_int(cisco_name, cisco_interface, sdw_connect):
+    cmd = "sh int " + cisco_interface + " | inc drops|bits"
+    cisco_output = list((sdw_connect.send_command(cmd)).split('\n'))
+    for j in range(len(cisco_output)):
+        cisco_output[j] = cisco_output[j].strip()
+
     cisco_int = {
     "cisco_name" : "SDWAN99",
     "cisco_interface" : "fa0/0",
@@ -23,6 +29,7 @@ def parser_int(cisco_name, cisco_interface, cisco_output):
   "5 minute input rate {} bits/sec, {} packets/sec",
   "5 minute output rate {} bits/sec, {} packets/sec",
      "{} unknown protocol drops"]
+
     parsed = []
     data = []
     for i in range(len(template)):
@@ -54,6 +61,54 @@ def parser_int(cisco_name, cisco_interface, cisco_output):
     cisco_int["Unknown_protocol"] = data[9]
     return cisco_int
 
+def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
+    cmd = "ping ip " + cisco_addr_dest + " source " + cisco_addr_src
+    cisco_output = list((sdw_connect.send_command(cmd)).split('\n'))
+    for j in range(len(cisco_output)):
+        cisco_output[j] = cisco_output[j].strip()
+
+    cisco_ping = {
+    "cisco_name" : "SDWAN99",
+    "cisco_addr_src" : "10.0.0.0",
+    "cisco_addr_dest" : "10.0.0.0",
+    "nb_packet_sent" : -1,
+    "size_ICMP_packet" : -1,
+    }
+    template = ["Type escape sequence to abort.",
+    "Sending {}, {}-byte ICMP Echos to {}, timeout is {} seconds:",
+    "Packet sent with a source address of {}",
+    "!!!!!",
+    "Success rate is {} percent ({}/{}), round-trip min/avg/max = {}/{}/{} ms"
+    ]
+    parsed = []
+    data = []
+    for i in range(len(template)):
+        # print(cisco_output[i])
+        # print(template[i])
+        parsed.append(parse(template[i], cisco_output[i]))
+    # print(list(parsed[0].fixed))
+    # print(parsed[0])
+    for i in range(len(parsed)):
+        if (parsed[i] == None):
+            continue
+        data0 = list(parsed[i].fixed)
+        for j in range(len(data0)):
+            data.append(data0[j])
+    
+    # print(data)
+    cisco_ping["cisco_name"] = cisco_name
+    cisco_ping["cisco_addr_src"] = cisco_addr_src # =data[2]
+    cisco_ping["cisco_addr_dest"] = cisco_addr_dest # =data[4]
+    cisco_ping["nb_packet_sent"] = data[0] # = data[7]
+    cisco_ping["size_ICMP_packet"] = data[1]
+    cisco_ping["timeout"] = data[3]
+    cisco_ping["Success_rate_percent"] = data[5]
+    cisco_ping["Success_packet"] = data[6]
+    cisco_ping["round_trip_min"] = data[8]
+    cisco_ping["round_trip_avg"]  = data[9]
+    cisco_ping["round_trip_max"] = data[10]
+    return cisco_ping
+
 sdwan1 = {
     'device_type': 'cisco_ios',
     'host':   '192.168.8.254',
@@ -79,19 +134,31 @@ sdw1_connect.enable()
 sdw2_connect = ConnectHandler(**sdwan2)
 sdw2_connect.enable()
 
-# cmd = ["sh int Gi1/0/1 | inc drops|bits"]
-cmd = ["sh int Gi1/0/1 | inc drops|bits", "sh int Gi1/0/2 | inc drops|bits"]
-for i in range(len(cmd)):
-    output = list((sdw1_connect.send_command(cmd[i])).split('\n'))
-    for j in range(len(output)):
-        output[j] = output[j].strip()
-    print(parser_int("sdwan1", "Gi1/0/" + str(i+1), output))
+machine = ["sdwan1", "sdwan2"]
+int_lst = ["Gi1/0/1", "Gi1/0/2"]
+links = [["10.1.1.1", "10.2.3.2"], ["10.2.1.1", "10.3.3.2"]] #[src, dst], ...]
+for i in range(len(int_lst)):
+    print(get_int("sdwan1", int_lst[i], sdw1_connect))
+for i in range(len(int_lst)):
+    print(get_int("sdwan2", int_lst[i], sdw2_connect))
 
-for i in range(len(cmd)):
-    output = list((sdw2_connect.send_command(cmd[i])).split('\n'))
-    for j in range(len(output)):
-        output[j] = output[j].strip()
-    print(parser_int("sdwan2", "Gi1/0/" + str(i+1) ,output))
+for i in range(len(links)):
+    print(get_latency("sdwan1", links[i][0], links[i][1], sdw1_connect))
+
+# for i in range(len(links)):
+#     print(get_latency("sdwan1", links[i][0], links[i][1]))
+
+
+# for i in range(len(cmd)):
+#     output = list((sdw2_connect.send_command(cmd[i])).split('\n'))
+#     for j in range(len(output)):
+#         output[j] = output[j].strip()
+#     print(parser_int("sdwan2", "Gi1/0/" + str(i+1) ,output))
+
+# récupérer latence ping source destination (attention !!)
+# Lien haut : SDWAN1 (10.1.1.1) <-> ... <-> SDWAN2 (10.2.3.2) : ping ip 10.2.3.2 source 10.1.1.1
+# Lien bas : SDWAN1 (10.2.1.1) <-> ... <-> SDWAN2 (10.3.3.2) : ping ip 10.3.3.2 source 10.2.1.1
+# protocol interface, service ACL, netstop
 
 # print(parse("Input queue: {}/{}/{}/{} (size/max/drops/flushes); Total output drops: {}", "Input queue: 0/375/0/0 (size/max/drops/flushes); Total output drops: 0"))
 # bande passante : "BW 1000000 Kbit/sec"
