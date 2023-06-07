@@ -125,19 +125,19 @@ def set_ACL(cisco_addr_src, cisco_mask_src, cisco_addr_dest, cisco_mask_dest, nb
     ACL1_0 = "no access-list " + str(nb_ACL)
     ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
     ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
-    cmd = ["conf t", ACL1_0, ACL1_1, ACL1_2]
-    for i in range(len(cmd)):
-        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+    config_commands = [ACL1_0, ACL1_1, ACL1_2]
+    for i in range(len(config_commands)):
+        cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
     return
 
 def unset_ACL(sdw_connect, nb_ACL):
     """
     this function unset ACL on cisco router
     """
-    ACL1_0 = "no access-list " + nb_ACL
-    cmd = ["conf t", ACL1_0]
-    for i in range(len(cmd)):
-        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+    ACL1_0 = "no access-list " + str(nb_ACL)
+    send_config_set = [ACL1_0]
+    for i in range(len(send_config_set)):
+        cisco_output = list((sdw_connect.send_config_set(send_config_set[i])).split('\n'))
     return
 
 
@@ -154,20 +154,20 @@ def set_PBR(sdw_connect, cisco_interface, name_pbr, nb_ACL, addr_route):
     # Device(config-route-map)# match ip address 1              Define the criteria by which packets are examined to learn if they will be policy-based routed.
     # Device(config-route-map)# set ip next-hop 172.16.6.6      Specifies where to output packets that pass a match clause of a route map for policy routing.
     # Device(config-route-map)# end
-    cmd = ["int " + cisco_interface, "no switchport", "ip policy route-map" + name_pbr, "exit",
+    config_commands = ["int " + cisco_interface, "no switchport", "ip policy route-map" + name_pbr, "exit",
             "route-map " + name_pbr + " permit 10", "match ip address" + str(nb_ACL), "set ip next-hop" + addr_route]
-    for i in range(len(cmd)):
-        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+    for i in range(len(config_commands)):
+        cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
     return
 
 def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, addr_route):
     """
     This function remove previous PBR configuration on an interface
     """
-    cmd = ["int " + cisco_interface, "no switchport", "ip policy route-map" + name_pbr, "exit",
+    config_commands = ["int " + cisco_interface, "no switchport", "no route-map testpbr" + name_pbr, "exit",
             "route-map " + name_pbr + " permit 10", "match ip address" + str(nb_ACL), "set ip next-hop" + addr_route]
-    for i in range(len(cmd)):
-        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+    for i in range(len(config_commands)):
+        cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
     return
 
 
@@ -191,32 +191,48 @@ sdwan2 = {
     "session_log": 'logs/netmiko_session2.log',
 }
 
-# create SSH connexion
-sdw1_connect = ConnectHandler(**sdwan1)
-sdw1_connect.enable()
-sdw2_connect = ConnectHandler(**sdwan2)
-sdw2_connect.enable()
-
 machine = ["sdwan1", "sdwan2"]
 int_lst = ["Gi1/0/1", "Gi1/0/2"]
 links = [["10.1.1.1", "10.2.3.2"], ["10.2.1.1", "10.3.3.2"]] #[src, dst], ...]
 
-for i in range(len(int_lst)):
-    print(get_int("sdwan1", int_lst[i], sdw1_connect))
-for i in range(len(int_lst)):
-    print(get_int("sdwan2", int_lst[i], sdw2_connect))
+def create_SSH():
+    # create SSH connexion
+    sdw1_connect = ConnectHandler(**sdwan1)
+    sdw1_connect.enable()
+    sdw2_connect = ConnectHandler(**sdwan2)
+    sdw2_connect.enable()
+    return sdw1_connect, sdw2_connect
 
-for i in range(len(links)):
-    print(get_latency("sdwan1", links[i][0], links[i][1], sdw1_connect))
+def delete_SSH(sdw1_connect, sdw2_connect):
+    sdw1_connect.disconnect()
+    sdw2_connect.disconnect()
 
-set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-# set_ACL(links[1][0], "0.0.0.255", links[1][1], "0.0.0.255", 103, sdw1_connect)
 
-set_PBR(sdw1_connect, int_lst[0], "testpbr", 102, links[0][0])
-# set_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
 
-unset_PBR(sdw1_connect, int_lst[0], "testpbr", 102, links[0][0])
-# unset_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
+def main():
+    sdw1_connect, sdw2_connect = create_SSH()
+    for i in range(len(int_lst)):
+        print(get_int("sdwan1", int_lst[i], sdw1_connect))
+    for i in range(len(int_lst)):
+        print(get_int("sdwan2", int_lst[i], sdw2_connect))
 
-unset_ACL(sdw1_connect, 102)
-# unset_ACL(sdw1_connect, 103)
+    for i in range(len(links)):
+        print(get_latency("sdwan1", links[i][0], links[i][1], sdw1_connect))
+
+    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
+    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
+    # set_ACL(links[1][0], "0.0.0.255", links[1][1], "0.0.0.255", 103, sdw1_connect)
+
+    # set_PBR(sdw1_connect, int_lst[0], "testpbr", 102, links[0][0])
+    # set_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
+
+    unset_PBR(sdw1_connect, int_lst[0], "testpbr", 102, links[0][0])
+    unset_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
+
+    unset_ACL(sdw1_connect, 102)
+    unset_ACL(sdw1_connect, 103)
+    delete_SSH(sdw1_connect, sdw2_connect)
+
+
+if __name__ == "__main__":
+    main()
