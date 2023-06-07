@@ -60,6 +60,9 @@ def get_int(cisco_name, cisco_interface, sdw_connect):
 # Lien haut : SDWAN1 (10.1.1.1) <-> ... <-> SDWAN2 (10.2.3.2) : ping ip 10.2.3.2 source 10.1.1.1
 # Lien bas : SDWAN1 (10.2.1.1) <-> ... <-> SDWAN2 (10.3.3.2) : ping ip 10.3.3.2 source 10.2.1.1
 def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
+    """
+    Return parse i
+    """
     cmd = "ping ip " + cisco_addr_dest + " source " + cisco_addr_src
     cisco_output = list((sdw_connect.send_command(cmd)).split('\n'))
     for j in range(len(cisco_output)):
@@ -71,6 +74,12 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     "cisco_addr_dest" : "10.0.0.0",
     "nb_packet_sent" : -1,
     "size_ICMP_packet" : -1,
+    "timeout" : -1,
+    "Success_rate_percent" : -1,
+    "Success_packet" : -1,
+    "round_trip_min" : -1,
+    "round_trip_avg" : -1,
+    "round_trip_max" : -1,
     }
     template = ["Type escape sequence to abort.",
     "Sending {}, {}-byte ICMP Echos to {}, timeout is {} seconds:",
@@ -107,11 +116,35 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     cisco_ping["round_trip_max"] = data[10]
     return cisco_ping
 
-def set_ACL():
-    #TODO
-    return 0
+    ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
 
-def set_PBR(sdw_connect, cisco_interface):
+def set_ACL(cisco_addr_src, cisco_mask_src, cisco_addr_dest, cisco_mask_dest, nb_ACL, sdw_connect):
+    """
+    this function set ACL on cisco router
+    """
+    ACL1_0 = "no access-list " + str(nb_ACL)
+    ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
+    ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
+    cmd = ["conf t", ACL1_0, ACL1_1, ACL1_2]
+    for i in range(len(cmd)):
+        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+    return
+
+def unset_ACL(sdw_connect, nb_ACL):
+    """
+    this function unset ACL on cisco router
+    """
+    ACL1_0 = "no access-list " + nb_ACL
+    cmd = ["conf t", ACL1_0]
+    for i in range(len(cmd)):
+        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+    return
+
+
+def set_PBR(sdw_connect, cisco_interface, name_pbr, nb_ACL, addr_route):
+    """
+    This function set PBR configuration on an interface
+    """
     # Device# configure terminal
     # Device(config)# interface gigabitethernet 1/0/0
     # Device(config-if)# no switchport
@@ -122,10 +155,21 @@ def set_PBR(sdw_connect, cisco_interface):
     # Device(config-route-map)# set ip next-hop 172.16.6.6      Specifies where to output packets that pass a match clause of a route map for policy routing.
     # Device(config-route-map)# end
     cmd = ["int " + cisco_interface, "no switchport", "ip policy route-map" + name_pbr, "exit",
-            "route-map " + name_pbr + " permit 10", "match ip address" + nb_ACL, "set ip next-hop" + addr_route]
-    for i in range(len(cmd))
+            "route-map " + name_pbr + " permit 10", "match ip address" + str(nb_ACL), "set ip next-hop" + addr_route]
+    for i in range(len(cmd)):
         cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
-    return 0
+    return
+
+def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, addr_route):
+    """
+    This function remove previous PBR configuration on an interface
+    """
+    cmd = ["int " + cisco_interface, "no switchport", "ip policy route-map" + name_pbr, "exit",
+            "route-map " + name_pbr + " permit 10", "match ip address" + str(nb_ACL), "set ip next-hop" + addr_route]
+    for i in range(len(cmd)):
+        cisco_output = list((sdw_connect.send_command(cmd[i])).split('\n'))
+    return
+
 
 sdwan1 = {
     'device_type': 'cisco_ios',
@@ -164,3 +208,15 @@ for i in range(len(int_lst)):
 
 for i in range(len(links)):
     print(get_latency("sdwan1", links[i][0], links[i][1], sdw1_connect))
+
+set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
+# set_ACL(links[1][0], "0.0.0.255", links[1][1], "0.0.0.255", 103, sdw1_connect)
+
+set_PBR(sdw1_connect, int_lst[0], "testpbr", 102, links[0][0])
+# set_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
+
+unset_PBR(sdw1_connect, int_lst[0], "testpbr", 102, links[0][0])
+# unset_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
+
+unset_ACL(sdw1_connect, 102)
+# unset_ACL(sdw1_connect, 103)
