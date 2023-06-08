@@ -2,7 +2,7 @@
 
 ## For Developer
 
-![Réseaux](resources/Network.jpg)
+![Réseaux](resources/Network2.png)
 
 ### Install dependancies
     pip3 install -r requirement.txt
