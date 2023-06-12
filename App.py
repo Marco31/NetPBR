@@ -118,14 +118,19 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
 
     ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
 
-def set_ACL(cisco_addr_src, cisco_mask_src, cisco_addr_dest, cisco_mask_dest, nb_ACL, sdw_connect, port=-1):
+def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", cisco_addr_dest = "-1", cisco_mask_dest = "-1", port=[]):
     """
     this function set ACL on cisco router
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
-    ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
-    if (port > 0):
-        ACL1_1 = "access-list " + str(nb_ACL) + " permit tcp " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest + " eq " + port
+    ACL1_1 = ""
+    if (cisco_addr_src == "-1" | cisco_mask_src == "-1" | cisco_addr_dest == "-1" | cisco_mask_dest=="-1"):
+        ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + "any" + + "any"
+    else:
+        ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
+    if (port != []):
+        for pt in port:
+            ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest + " eq " + pt
     ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
     config_commands = [ACL1_0, ACL1_1, ACL1_2]
     for i in range(len(config_commands)):
@@ -194,48 +199,57 @@ sdwan2 = {
 
 machine = ["sdwan1", "sdwan2"]
 int_lst = ["Gi1/0/1", "Gi1/0/2"]
-links = [["10.1.1.1", "10.2.3.2"], ["10.2.1.1", "10.3.3.2"]; ["192.168.4.1", "192.168.8.218"]] #[src, dst], ...]
+links = [["10.1.1.1", "10.2.3.2"], ["10.2.1.1", "10.3.3.2"], ["192.168.4.1", "192.168.8.218"]] #[src, dst], ...]
+protocols = [
+    ["Echo", [7]],
+    ["FTP", [21,20]],
+    ["SSH", [22]],
+    ["Telnet", [23]],
+    ["SMTP", [25]],
+    ["TFTP", [69]],
+    ["HTTP", [80, ]],
+    ["POP", [109, 110]],
+    ["SQL", [118]],
+    ["IMAP", [143]],
+    ["LDAP", [389]],
+    ["HTTPS", [443]],
+    ["TLS-SSL", [465]],
+    ["DHCPS", [546, 547]],
+    ["IMAPS", [585]],
+    ["SMTP", [587]],
+    ["LDAPS", [636]],
+    ["Cisco", [5004]] # UDP
+]
 
-def create_SSH():
+def create_SSH(s : int):
     # create SSH connexion
-    sdw1_connect = ConnectHandler(**sdwan1)
-    sdw1_connect.enable()
-    sdw2_connect = ConnectHandler(**sdwan2)
-    sdw2_connect.enable()
-    return sdw1_connect, sdw2_connect
+    if (s == 1):
+        sdw1_connect = ConnectHandler(**sdwan1)
+        sdw1_connect.enable()
+        return sdw1_connect
+    elif (s == 2):
+        sdw2_connect = ConnectHandler(**sdwan2)
+        sdw2_connect.enable()
+        return sdw2_connect
+    elif (s == 0):
+        return sdw1_connect, sdw2_connect
+    else:
+        return 0
 
-def delete_SSH(sdw1_connect, sdw2_connect):
-    sdw1_connect.disconnect()
-    sdw2_connect.disconnect()
+def delete_SSH(sdw_connect):
+    sdw_connect.disconnect()
 
 
 
 def main():
-    sdw1_connect, sdw2_connect = create_SSH()
+    sdw1_connect, sdw2_connect = create_SSH(2)
+    set_PBR(sdw1_connect, "Gi1/0/24", "pbrsdw1", "192.168.4.1")
+    set_PBR(sdw2_connect, "Gi1/0/24", "pbrsdw2", "192.168.8.218")
 
-    # for i in range(len(int_lst)):
-    #     print(get_int("sdwan1", int_lst[i], sdw1_connect))
-    # for i in range(len(int_lst)):
-    #     print(get_int("sdwan2", int_lst[i], sdw2_connect))
-
-    # for i in range(len(links)):
-    #     print(get_latency("sdwan1", links[i][0], links[i][1], sdw1_connect))
-
-    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-    # set_ACL(links[1][0], "0.0.0.255", links[1][1], "0.0.0.255", 103, sdw1_connect)
-
-    set_PBR(sdw1_connect, int_lst[0], "testpbr1", 102, links[0][0])
-    set_PBR(sdw1_connect, int_lst[0], "testpbr2", 102, links[0][0])
-    # set_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
-
-    # unset_PBR(sdw1_connect, int_lst[0], "testpbr", 102, links[0][0])
-    # unset_PBR(sdw1_connect, int_lst[0], "testpbr", 103, links[1][0])
-
-    # unset_ACL(sdw1_connect, 102)
-    # unset_ACL(sdw1_connect, 103)
-
-    delete_SSH(sdw1_connect, sdw2_connect)
+    set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
+    set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
+    delete_SSH(sdw1_connect)
+    delete_SSH(sdw2_connect)
 
 
 if __name__ == "__main__":
