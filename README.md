@@ -21,3 +21,9 @@
     get_int(cisco_name, cisco_interface, sdw_connect):
 
     get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
+
+## In Development
+TODO :
+ - [ ] support case where ping failed
+ - [ ] test PBR
+ - [ ] TCPlatency
