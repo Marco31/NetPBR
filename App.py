@@ -126,9 +126,9 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", c
     ACL1_1 = ""
     if (cisco_addr_src == "-1" | cisco_mask_src == "-1" | cisco_addr_dest == "-1" | cisco_mask_dest=="-1"):
         ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + "any" + + "any"
-    else:
+    elif (port == []):
         ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
-    if (port != []):
+    else:
         for pt in port:
             ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest + " eq " + pt
     ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
