@@ -19,7 +19,7 @@ class StageAI:
                 print(int_sdwan_1)
                 print(int_sdwan_2)
                 print(latency_sdw1_2_sdw2)
-                # print(int_sdwan_1["cisco_name"])
+
                 if msg == 's1 is DONE ':
                     break # ends loop
             time.sleep(1) # work

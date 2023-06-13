@@ -4,20 +4,10 @@ import random
 
 
 def collect_notraffic(sdw1_connect, ip_src, ip_dest):
-    #set ACL1
-    # npr.set_ACL(sdw1_connect, 101, ip_src, "0.0.0.255", ip_dest, "0.0.0.255", [])
-    # tracert
     A = npr.get_int("sdwan2_1", "Gi1/0/1", sdw1_connect)
     B = npr.get_int("sdwan2_2", "Gi1/0/2", sdw1_connect)
-    #C = npr.get_latency("sdwan2_1", ip_src, ip_dest, sdw1_connect)
     C = npr.get_latency_2(ip_dest)
     return A,B,C
-    #set ACL2
-
-def collect_():
-    sdw1_connect, sdw2_connect = npr.create_SSH()
-    
-    npr.delete_SSH(sdw1_connect, sdw2_connect)
 
 def loop_collection(child_conn):
     msg = "Hello"

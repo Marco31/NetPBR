@@ -129,6 +129,8 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     this function set ACL on cisco router
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
+    if (port == ["NACL"]):
+        return
     ACL1_1 = ""
     if (cisco_addr_src == "-1" or cisco_mask_src == "-1"):
         ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + "any" + + "any"
@@ -232,8 +234,6 @@ def create_SSH(s : int):
         sdw2_connect = ConnectHandler(**sdwan2)
         sdw2_connect.enable()
         return sdw2_connect
-    elif (s == 0):
-        return sdw1_connect, sdw2_connect
     else:
         return 0
 
