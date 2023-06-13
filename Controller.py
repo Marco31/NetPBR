@@ -3,8 +3,7 @@ import time
 import random
 
 
-def collect_notraffic(ip_src, ip_dest):
-    sdw1_connect = npr.create_SSH(1)
+def collect_notraffic(sdw1_connect, ip_src, ip_dest):
     #set ACL1
     # npr.set_ACL(sdw1_connect, 101, ip_src, "0.0.0.255", ip_dest, "0.0.0.255", [])
     # tracert
@@ -14,8 +13,6 @@ def collect_notraffic(ip_src, ip_dest):
     C = npr.get_latency_2(ip_dest)
     return A,B,C
     #set ACL2
-    
-    npr.delete_SSH(sdw2_connect)
 
 def collect_():
     sdw1_connect, sdw2_connect = npr.create_SSH()
@@ -31,10 +28,16 @@ class StageController:
     def stageCTR(self, queueSCTR, queueSAI):
         print("stage1")
         while True:
+            sdw1_connect = npr.create_SSH(1)
           # to avoid unnecessary waiting
             if not queueSAI.empty():
                 msg = queueSAI.get()    # get msg from SAI
-                print("! ! ! SController RECEIVED from SAI:", msg)
+                Cport = []
+                if (msg == "update lists"):
+                    print("! ! ! SController RECEIVED from SAI:", msg)
+                else :
+                    Cport = msg.split('|') ## example : 80|40
+            npr.set_ACL(sdw1_connect, 101, cisco_addr_src = "192.168.4.1", cisco_mask_src = "255.255.255.0", port=Cport)
             time.sleep(1) # work
             PreQueue = ""
             try:
@@ -43,6 +46,7 @@ class StageController:
             except:
                 PreQueue = "ERR_DATA"
             queueSCTR.put(PreQueue)
+            npr.delete_SSH(sdw1_connect)
         queueS1.put('s1 is DONE')
 
 if __name__ == "__main__":

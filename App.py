@@ -7,10 +7,10 @@ if __name__ == '__main__':
     SAI= AI.StageAI()
 
     # collection to AI communication
-    queueSCTR = Queue()  # s1.stage1() writes to queueS1
+    queueSCTR = Queue()  # SController.stageCTR() writes to queueSCTR
 
     # AI to collection communication
-    queueSAI = Queue()  # s2.stage2() writes to queueS2
+    queueSAI = Queue()  # SAI.stageAI() writes to queueSAI
 
     # start AI as another process
     SAI = Process(target=SAI.stageAI, args=(queueSCTR, queueSAI))

@@ -124,19 +124,19 @@ def get_latency_2(cisco_addr_dest):
     return A
 
 
-def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", cisco_addr_dest = "-1", cisco_mask_dest = "-1", port=[]):
+def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", port=[]):
     """
     this function set ACL on cisco router
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
     ACL1_1 = ""
-    if (cisco_addr_src == "-1" or cisco_mask_src == "-1" or cisco_addr_dest == "-1" or cisco_mask_dest=="-1"):
+    if (cisco_addr_src == "-1" or cisco_mask_src == "-1"):
         ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + "any" + + "any"
     elif (port == []):
-        ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
+        ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any"
     else:
         for pt in port:
-            ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest + " eq " + pt
+            ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any" + + " eq " + pt
     ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
     config_commands = [ACL1_0, ACL1_1, ACL1_2]
     for i in range(len(config_commands)):
@@ -158,15 +158,6 @@ def set_PBR(sdw_connect, cisco_interface, name_pbr, nb_ACL, addr_route):
     """
     This function set PBR configuration on an interface
     """
-    # Device# configure terminal
-    # Device(config)# interface gigabitethernet 1/0/0
-    # Device(config-if)# no switchport
-    # Device(config-if)# ip policy route-map equal-access       Identifies a route map to use for policy routing on an interface.
-    # Device(config-if)# exit       
-    # Device(config)# route-map equal-access permit 10          Defines the conditions for redistributing routes from one routing protocol into another routing protocol or enables policy-based routing and enters route-map configuration mode.
-    # Device(config-route-map)# match ip address 1              Define the criteria by which packets are examined to learn if they will be policy-based routed.
-    # Device(config-route-map)# set ip next-hop 172.16.6.6      Specifies where to output packets that pass a match clause of a route map for policy routing.
-    # Device(config-route-map)# end
     config_commands = ["int " + cisco_interface, "no switchport", "ip policy route-map " + name_pbr, "exit",
             "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL), "set ip next-hop " + addr_route]
     cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
@@ -180,6 +171,8 @@ def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, a
             "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL), "set ip next-hop " + addr_route]
     cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
     return
+
+# Following IP need to be change
 
 # ssh cisco@192.168.8.254
 sdwan1 = {
@@ -228,7 +221,9 @@ protocols = [
 ]
 
 def create_SSH(s : int):
-    # create SSH connexion
+    """
+    Return ConnectHandler object to control cisco device
+    """
     if (s == 1):
         sdw1_connect = ConnectHandler(**sdwan1)
         sdw1_connect.enable()
@@ -242,21 +237,18 @@ def create_SSH(s : int):
     else:
         return 0
 
-def delete_SSH(sdw_connect):
+def remove_SSH(sdw_connect):
+    """
+    remove SSH connexion
+    """
     sdw_connect.disconnect()
 
-
-
-def main():
+if __name__ == "__main__":
     sdw1_connect, sdw2_connect = create_SSH(2)
     set_PBR(sdw1_connect, "Gi1/0/24", "pbrsdw1", "192.168.4.1")
     set_PBR(sdw2_connect, "Gi1/0/24", "pbrsdw2", "192.168.8.218")
 
     set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
     set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-    delete_SSH(sdw1_connect)
-    delete_SSH(sdw2_connect)
-
-
-if __name__ == "__main__":
-    main()
+    remove_SSH(sdw1_connect)
+    remove_SSH(sdw2_connect)

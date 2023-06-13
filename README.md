@@ -24,7 +24,6 @@
 
 ## In Development
 TODO :
- - [ ] support case where ping failed
- - [ ] support case where connexion failed
+ - [X] support case where connexion failed
  - [ ] test PBR
  - [X] TCPlatency
