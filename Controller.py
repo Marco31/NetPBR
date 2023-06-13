@@ -6,11 +6,12 @@ import random
 def collect_notraffic(ip_src, ip_dest):
     sdw1_connect = npr.create_SSH(1)
     #set ACL1
-    npr.set_ACL(sdw1_connect, 101, ip_src, "0.0.0.255", ip_dest, "0.0.0.255", [])
+    # npr.set_ACL(sdw1_connect, 101, ip_src, "0.0.0.255", ip_dest, "0.0.0.255", [])
     # tracert
     A = npr.get_int("sdwan2_1", "Gi1/0/1", sdw1_connect)
     B = npr.get_int("sdwan2_2", "Gi1/0/2", sdw1_connect)
-    C = npr.get_latency("sdwan2_1", ip_src, ip_dest, sdw1_connect)
+    #C = npr.get_latency("sdwan2_1", ip_src, ip_dest, sdw1_connect)
+    C = npr.get_latency_2(ip_dest)
     return A,B,C
     #set ACL2
     
@@ -26,25 +27,27 @@ def loop_collection(child_conn):
     child_conn.send(msg)
     child_conn.close()
 
-class Stage1:
-    def stage1(self, queueS1, queueS2):
+class StageController:
+    def stageCTR(self, queueSCTR, queueSAI):
         print("stage1")
-        lala = []
-        lis = [1, 2, 3, 4, 5]
-        for i in range(len(lis)):
+        while True:
           # to avoid unnecessary waiting
-            if not queueS2.empty():
-                msg = queueS2.get()    # get msg from s2
-                print("! ! ! stage1 RECEIVED from s2:", msg)
-                lala = [6, 7, 8] # now that a msg was received, further msgs will be different
+            if not queueSAI.empty():
+                msg = queueSAI.get()    # get msg from SAI
+                print("! ! ! SController RECEIVED from SAI:", msg)
             time.sleep(1) # work
-            random.shuffle(lis)
-            A, B, C = collect_notraffic("192.168.4.1", "192.168.140.1")
-            A = str(A)
-            # queueS1.put(lis + lala)
-            queueS1.put(A)
+            PreQueue = ""
+            try:
+                A, B, C= collect_notraffic("192.168.4.1", "192.168.140.1")
+                PreQueue = str(A) + "|" + str(B) + "|" + str(C)
+            except:
+                PreQueue = "ERR_DATA"
+            queueSCTR.put(PreQueue)
         queueS1.put('s1 is DONE')
 
 if __name__ == "__main__":
     A, B, C = collect_notraffic("192.168.4.1", "192.168.140.1")
+    A, B, C = collect_notraffic("192.168.4.22", "192.168.140.10")
     print(A)
+    print(B)
+    print(C)

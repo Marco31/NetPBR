@@ -1,21 +1,21 @@
 from multiprocessing import Process, Queue
-import collection
+import Controller
 import AI
 
 if __name__ == '__main__':
-    s1= collection.Stage1()
-    s2= AI.Stage2()
+    SController= Controller.StageController()
+    SAI= AI.StageAI()
 
     # collection to AI communication
-    queueS1 = Queue()  # s1.stage1() writes to queueS1
+    queueSCTR = Queue()  # s1.stage1() writes to queueS1
 
     # AI to collection communication
-    queueS2 = Queue()  # s2.stage2() writes to queueS2
+    queueSAI = Queue()  # s2.stage2() writes to queueS2
 
     # start AI as another process
-    s2 = Process(target=s2.stage2, args=(queueS1, queueS2))
-    s2.daemon = True
-    s2.start()     # Launch the AI process
+    SAI = Process(target=SAI.stageAI, args=(queueSCTR, queueSAI))
+    SAI.daemon = True
+    SAI.start()     # Launch the AI process
 
-    s1.stage1(queueS1, queueS2) # start sending stuff from s1 to s2 
-    s2.join() # wait till s2 daemon finishes
+    SController.stageCTR(queueSCTR, queueSAI) # start sending stuff from s1 to s2 
+    SController.join() # wait till s2 daemon finishes
