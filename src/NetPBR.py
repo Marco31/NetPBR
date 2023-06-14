@@ -120,7 +120,7 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
 
 def get_latency_2(cisco_addr_dest):
-    A = measure_latency(host=cisco_addr_dest, runs=10, timeout=2)
+    A = measure_latency(host=cisco_addr_dest, runs=1, timeout=2)
     return A
 
 
@@ -188,7 +188,7 @@ def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, a
 # ssh cisco@192.168.8.254
 sdwan1 = {
     'device_type': 'cisco_ios',
-    'host':   '192.168.4.1', #192.168.8.254
+    'host':   '192.168.4.1', #  192.168.8.254
     'username': 'cisco',
     'password': 'ping123',
     # 'port' : 22,          # optional, defaults to 22

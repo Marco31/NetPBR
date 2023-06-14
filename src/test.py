@@ -15,8 +15,8 @@ def set_ACL_test():
     cisco_output = list((sdw1_connect.send_command(cmd, read_timeout=75)).split('\n'))
     print(cisco_output)
 
-    npr.delete_SSH(sdw1_connect)
-    npr.delete_SSH(sdw2_connect)
+    npr.remove_SSH(sdw1_connect)
+    npr.remove_SSH(sdw2_connect)
 
 set_ACL_test()
 
