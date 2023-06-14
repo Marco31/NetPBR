@@ -130,6 +130,15 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
     if (port == ["NACL"]):
+        ACL = [ACL1_0, ACL1_1, ACL1_2, ACL1_3, ACL2_1, ACL1_2]
+        ACL1_1 = "int Gi1/0/1"
+        ACL1_2 = "no ip policy route-map test"
+        ACL1_3 = "exit"
+        ACL2_1 = "int Gi1/0/12"
+        ACL1_2 = "no ip policy route-map test"
+
+        for i in range(len(config_commands)):
+            cisco_output = list((sdw_connect.send_config_set(ACL[i])).split('\n'))
         return
     ACL1_1 = ""
     if (cisco_addr_src == "-1" or cisco_mask_src == "-1"):

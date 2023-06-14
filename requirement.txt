@@ -1,2 +1,7 @@
 netmiko
 parse
+ast
+pytest
+tox>=3.8
+pre-commit
+coverage

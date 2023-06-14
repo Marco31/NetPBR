@@ -25,9 +25,5 @@ class StageAI:
             time.sleep(1) # work
             queueS2.put("update lists")
 
-def training():
-    print("training...")
-    # AI stuffs
-
 if __name__ == '__main__':
     print("Start AI")
