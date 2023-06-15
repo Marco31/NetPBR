@@ -1,6 +1,9 @@
 from netmiko import ConnectHandler
 from parse import *
 from tcp_latency import measure_latency
+import subprocess
+
+DEBUG = True
 
 def get_int(cisco_name, cisco_interface, sdw_connect):
     cmd = "sh int " + cisco_interface + " | inc drops|bits"
@@ -62,7 +65,7 @@ def get_int(cisco_name, cisco_interface, sdw_connect):
 # Lien bas : SDWAN1 (10.2.1.1) <-> ... <-> SDWAN2 (10.3.3.2) : ping ip 10.3.3.2 source 10.2.1.1
 def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     """
-    Return parse i
+    Return parse of ping request
     """
     cmd = "ping ip " + cisco_addr_dest + " source " + cisco_addr_src
     cisco_output = list((sdw_connect.send_command(cmd)).split('\n'))
@@ -80,7 +83,7 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     "Success_packet" : -1,
     "round_trip_min" : -1,
     "round_trip_avg" : -1,
-    "round_trip_max" : -1,
+    "round_trip_max" : -1
     }
     template = ["Type escape sequence to abort.",
     "Sending {}, {}-byte ICMP Echos to {}, timeout is {} seconds:",
@@ -120,12 +123,67 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
 
 def get_latency_2(cisco_addr_dest):
+    """
+    Return of tcplatency request
+    """
     A = measure_latency(host=cisco_addr_dest, runs=1, timeout=2)
     return A
 
 def get_latency_3(cisco_addr_dest):
-    A = measure_latency(host=cisco_addr_dest, runs=1, timeout=2)
-    return A
+    """
+    Return parse of abing request (https://github.com/RichardWithnell/abing)
+    This function is not 
+    """
+    abing = {
+    "ID" : "SDWAN99",
+    "addr_dest" : "10.0.0.0",
+    "ABw" : -1,
+    "Xtr" : -1,
+    "DBC" : -1,
+    "RTT-min" : -1,
+    "RTT-avg" : -1,
+    "RTT-max" : -1,
+    "RTT-timeout" : -1,
+    }
+    B = ""
+    if not DEBUG:
+        A = subprocess.run(['abing', '-d', 'cisco_addr_dest'], stdout=subprocess.PIPE)
+        B = A.stdout
+    else:
+        B = """1686830131 T: 192.168.50.9 ABw-Xtr-DBC:  10.7   0.4  11.1 ABW:  10.7 Mbps RTT: 7.322 7.550 7.913 ms 20 20
+    1686830131 F: 192.168.50.9 ABw-Xtr-DBC:   9.7   0.1   9.8 ABW:   9.7 Mbps RTT: 7.322 7.550 7.913 ms 20 20"""
+    B = list(B.split('\n'))
+    for j in range(len(B)):
+            B[j] = B[j].strip()
+
+    template = ["{} T: {} ABw-Xtr-DBC:  {}   {}  {} ABW:  {} Mbps RTT: {} {} {} ms {} {}",
+                "{} F: {} ABw-Xtr-DBC:   {}   {}  {} ABW:   {} Mbps RTT: {} {} {} ms {} {}"]
+    parsed = []
+    data = []
+    for i in range(len(template)):
+        # print(cisco_output[i])
+        # print(template[i])
+        parsed.append(parse(template[i], B[i]))
+    # print(list(parsed[0].fixed))
+    # print(parsed[0])
+    for i in range(len(parsed)):
+        if (parsed[i] == None):
+            continue
+        data0 = list(parsed[i].fixed)
+        for j in range(len(data0)):
+            data.append(data0[j])
+
+    abing["ID"] = data[0]
+    abing["addr_dest"] = data[1]
+    abing["ABw"] = data[2]
+    abing["Xtr"] = data[3]
+    abing["DBC"] = data[4]
+    abing["RTT-min"] = data[6]
+    abing["RTT-avg"] = data[7]
+    abing["RTT-max"] = data[8]
+    abing["RTT-timeout"] = data[9]
+
+    return abing
 
 
 def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", port=[]):
@@ -265,5 +323,6 @@ if __name__ == "__main__":
     # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
     # remove_SSH(sdw1_connect)
     # remove_SSH(sdw2_connect)
-    C = get_latency_2("192.168.50.1")
+    # C = get_latency_2("192.168.50.1")
+    C = get_latency_3("192.168.50.9")
     print(C)

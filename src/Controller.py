@@ -18,7 +18,8 @@ def signal_handler(sig, frame):
 def collect_notraffic(sdw1_connect, ip_src, ip_dest):
     A = npr.get_int("sdwan2_1", "Gi1/0/1", sdw1_connect)
     B = npr.get_int("sdwan2_2", "Gi1/0/2", sdw1_connect)
-    C = npr.get_latency_2(ip_dest)
+    C = npr.get_latency_3(ip_dest)
+    logging.info("collect_notraffic -> C = " + str(C))
     return A,B,C
 
 def loop_collection(child_conn):
@@ -35,7 +36,8 @@ class StageController:
         signal.signal(signal.SIGINT, signal_handler)
     def stageCTR(self, queueSCTR, queueSAI):
         print("stage1")
-        latency_data = []
+        latency_data = [1, 1, 1 , 1 , 1, 1, 1, 1, 1]
+        idx = 0
         while not end:
             # Check if Request is receive 
             sdw1_connect = npr.create_SSH(1)
@@ -62,7 +64,7 @@ class StageController:
             latency_max = -1
             bandwidth = -1
             try:
-                A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.253")
+                A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.9")
                 if A["I_rate_bit"] and B["I_rate_bit"]:
                     throughput_I[0] = A["I_rate_bit"]
                     throughput_I[1] = B["I_rate_bit"]
@@ -73,13 +75,18 @@ class StageController:
                     pck_loss[0] = A["O_drop"]
                     pck_loss[1] = B["O_drop"]
                 if C != []:
-                    latency_data.append(C[0])
+                    logging.info("C = " + str(C))
+                    bandwidth = C["ABw"]
+                    if idx == 9:
+                        idx = 0
+                    latency_data[idx] = C["RTT-min"]
+                    latency_data[idx+1] = C["RTT-avg"]
+                    latency_data[idx+2] = C["RTT-max"]
+                    idx += 3
                     logging.info("latency_data = " + str(latency_data))
-                    latency_data_work = latency_data[-5:]
-                    latency_avg = numpy.average(latency_data_work)
-                    latency_sigma = numpy.std(latency_data_work)
-                    latency_max = max(latency_data_work)
-                # PreQueue = str(A) + "|" + str(B) + "|" + str(C)
+                    latency_avg = numpy.average(latency_data)
+                    latency_sigma = numpy.std(latency_data)
+                    latency_max = max(latency_data)
                 PreQueue = str(str(lst_service_channel) + "|" + str(throughput_I) + "|" + str(throughput_O) + "|" + str(pck_loss) + "|" + str(latency_avg)  + "|" + str(latency_sigma) + "|" + str(latency_max)  + "|"  + str(bandwidth))
                 logging.info(PreQueue)
             except Exception as error:
@@ -96,7 +103,7 @@ class StageController:
 
 if __name__ == "__main__":
     sdw1_connect = npr.create_SSH(1)
-    A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.253")
+    A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.9")
     # A, B, C = collect_notraffic("192.168.4.22", "192.168.140.10")
     print(A)
     print(B)
