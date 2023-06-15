@@ -2,6 +2,17 @@ import NetPBR as npr
 import time
 import random
 import numpy
+import logging
+import signal
+import sys
+import ast
+
+end = False
+
+def signal_handler(sig, frame):
+    print('You pressed Ctrl+C!')
+    end = True
+    sys.exit(0) # To be remove
 
 
 def collect_notraffic(sdw1_connect, ip_src, ip_dest):
@@ -16,10 +27,16 @@ def loop_collection(child_conn):
     child_conn.close()
 
 class StageController:
+    def __init__(self):
+        logging.basicConfig(filename="src/logs/Controller.log",
+                             level=logging.INFO,
+                             format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
+        signal.signal(signal.SIGINT, signal_handler)
     def stageCTR(self, queueSCTR, queueSAI):
         print("stage1")
         latency_data = []
-        while True:
+        while not end:
             # Check if Request is receive 
             sdw1_connect = npr.create_SSH(1)
             Cport = []
@@ -45,7 +62,7 @@ class StageController:
             latency_max = -1
             bandwidth = -1
             try:
-                A, B, C= collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.1")
+                A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.253")
                 if A["I_rate_bit"] and B["I_rate_bit"]:
                     throughput_I[0] = A["I_rate_bit"]
                     throughput_I[1] = B["I_rate_bit"]
@@ -54,29 +71,32 @@ class StageController:
                     throughput_O[1] = B["O_rate_bit"]
                 if A["O_drop"] and B["O_drop"]:
                     pck_loss[0] = A["O_drop"]
-                    pck_loss[0] = B["O_drop"]
+                    pck_loss[1] = B["O_drop"]
                 if C != []:
                     latency_data.append(C[0])
+                    logging.info("latency_data = " + str(latency_data))
                     latency_data_work = latency_data[-5:]
                     latency_avg = numpy.average(latency_data_work)
                     latency_sigma = numpy.std(latency_data_work)
                     latency_max = max(latency_data_work)
                 # PreQueue = str(A) + "|" + str(B) + "|" + str(C)
-                PreQueue = str(lst_service_channel + "|" + throughput_I + "|" + throughput_O + "|" + pck_loss + "|" + latency_avg  + "|" + latency_sigma + "|" + latency_max  + "|"  + bandwidth)
-            except:
+                PreQueue = str(str(lst_service_channel) + "|" + str(throughput_I) + "|" + str(throughput_O) + "|" + str(pck_loss) + "|" + str(latency_avg)  + "|" + str(latency_sigma) + "|" + str(latency_max)  + "|"  + str(bandwidth))
+                logging.info(PreQueue)
+            except Exception as error:
                 PreQueue = "ERR_DATA"
+                logging.error(error)
             
             # Prepare Data
             
             # Send Data
             queueSCTR.put(PreQueue)
             npr.remove_SSH(sdw1_connect)
-
-        queueS1.put('s1 is DONE')
+        print(end)
+        queueSCTR.put('s1 is DONE')
 
 if __name__ == "__main__":
     sdw1_connect = npr.create_SSH(1)
-    A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.1")
+    A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.253")
     # A, B, C = collect_notraffic("192.168.4.22", "192.168.140.10")
     print(A)
     print(B)

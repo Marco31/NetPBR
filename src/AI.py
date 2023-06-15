@@ -1,7 +1,10 @@
 import time
 import ast
+import logging
 
 class StageAI:
+    def __init__(self):
+        logging.basicConfig(filename="src/logs/AI.log", level=logging.INFO)
     def stageAI(self, queueS1, queueS2):
         print("stage2")
         while True:
@@ -21,20 +24,20 @@ class StageAI:
                 # int_sdwan_1 = ast.literal_eval(Qlist[0])
                 # int_sdwan_2 = ast.literal_eval(Qlist[1])
                 # latency_sdw1_2_sdw2 = Qlist[2]
-                lst_service_channel = list(Qlist[0])
-                throughput_I = int(Qlist[1]) # throughput_Input by interface (bit/s) [Gi1/0/1, Gi1/0/2]
-                throughput_O = int(Qlist[2])
-                pck_loss = list(Qlist[3])
-                latency_avg = int(Qlist[4])
-                latency_sigma = int(Qlist[5])
-                latency_max = int(Qlist[6])
-                bandwidth = int(Qlist[7])
+                lst_service_channel = ast.literal_eval(Qlist[0])
+                throughput_I = ast.literal_eval(Qlist[1]) # throughput_Input by interface (bit/s) [Gi1/0/1, Gi1/0/2]
+                throughput_O = ast.literal_eval(Qlist[2])
+                pck_loss = ast.literal_eval(Qlist[3])
+                latency_avg = float(Qlist[4])
+                latency_sigma = float(Qlist[5])
+                latency_max = float(Qlist[6])
+                bandwidth = float(Qlist[7])
 
                 print("- - - sAI RECEIVED from sController:")
                 print(lst_service_channel)
-                print(throughput_I)
-                print(throughput_O)
-                print(pck_loss)
+                print(throughput_I) # by interface
+                print(throughput_O) # by interface
+                print(pck_loss) # by interface
                 print(latency_avg)
                 print(latency_sigma)
                 print(latency_max)

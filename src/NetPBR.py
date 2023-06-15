@@ -123,6 +123,10 @@ def get_latency_2(cisco_addr_dest):
     A = measure_latency(host=cisco_addr_dest, runs=1, timeout=2)
     return A
 
+def get_latency_3(cisco_addr_dest):
+    A = measure_latency(host=cisco_addr_dest, runs=1, timeout=2)
+    return A
+
 
 def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", port=[]):
     """
@@ -193,7 +197,7 @@ sdwan1 = {
     'password': 'ping123',
     # 'port' : 22,          # optional, defaults to 22
     'secret': 'ping123',     # optional, defaults to ''
-    "session_log": 'logs/netmiko_session1.log',
+    "session_log": 'src/logs/netmiko_session1.log',
 }
 
 # ssh cisco@192.168.8.218
@@ -204,7 +208,7 @@ sdwan2 = {
     'password': 'ping123',
     # 'port' : 22,          # optional, defaults to 22
     'secret': 'ping123',     # optional, defaults to ''
-    "session_log": 'logs/netmiko_session2.log',
+    "session_log": 'src/logs/netmiko_session2.log',
 }
 
 machine = ["sdwan1", "sdwan2"]
@@ -253,11 +257,13 @@ def remove_SSH(sdw_connect):
     sdw_connect.disconnect()
 
 if __name__ == "__main__":
-    sdw1_connect, sdw2_connect = create_SSH(2)
-    set_PBR(sdw1_connect, "Gi1/0/24", "pbrsdw1", "192.168.4.1")
-    set_PBR(sdw2_connect, "Gi1/0/24", "pbrsdw2", "192.168.8.218")
+    # sdw1_connect, sdw2_connect = create_SSH(2)
+    # set_PBR(sdw1_connect, "Gi1/0/24", "pbrsdw1", "192.168.4.1")
+    # set_PBR(sdw2_connect, "Gi1/0/24", "pbrsdw2", "192.168.8.218")
 
-    set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-    set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-    remove_SSH(sdw1_connect)
-    remove_SSH(sdw2_connect)
+    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
+    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
+    # remove_SSH(sdw1_connect)
+    # remove_SSH(sdw2_connect)
+    C = get_latency_2("192.168.50.1")
+    print(C)

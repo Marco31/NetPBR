@@ -1,5 +1,9 @@
 # NetPBR
 
+## For User
+Launch NetPBR Application with the following command :
+    python3.11 src/App.py
+
 ## For Developer
 
 ![Réseaux](resources/Network2.png)
