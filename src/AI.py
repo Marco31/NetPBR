@@ -44,7 +44,7 @@ class StageAI:
                 print(bandwidth)
                 # if network is not full do
                 # PreQueue = "NOACL"
-                # otherwise if you want to for example to reroute http (80) and https (443) do
+                # otherwise if you want  for example to reroute http (80) and https (443) do
                 # PreQueue = "80|443"
                 
             time.sleep(1) # work

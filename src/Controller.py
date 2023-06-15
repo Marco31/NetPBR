@@ -28,12 +28,14 @@ def loop_collection(child_conn):
     child_conn.close()
 
 class StageController:
+    ACL_SET = False
     def __init__(self):
         logging.basicConfig(filename="src/logs/Controller.log",
                              level=logging.INFO,
                              format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
         signal.signal(signal.SIGINT, signal_handler)
+        
     def stageCTR(self, queueSCTR, queueSAI):
         print("stage1")
         latency_data = [1, 1, 1 , 1 , 1, 1, 1, 1, 1]
@@ -50,7 +52,11 @@ class StageController:
                     print("! ! ! SController RECEIVED from SAI:", msg)
                 else :
                     Cport = msg.split('|') ## example : 80|40
-            npr.set_ACL(sdw1_connect, 101, cisco_addr_src = "192.168.4.1", cisco_mask_src = "255.255.255.0", port=Cport)
+            npr.set_ACL(sdw1_connect, 101, cisco_addr_src = "192.168.4.0", cisco_mask_src = "0.0.0.255", port=Cport)
+            if Cport[0] == "NOACL" or Cport == []:
+                ACL_SET = False
+            else:
+                ACL_SET = True
             time.sleep(1) # work
 
             # Collect & Prepare Data

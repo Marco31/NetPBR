@@ -192,7 +192,9 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
     if (port == ["NACL"]):
-        ACL = [ACL1_0, ACL1_1, ACL1_2, ACL1_3, ACL2_1, ACL1_2]
+        cisco_output = list((sdw_connect.send_config_set(ACL1_0)).split('\n'))
+        set_PBR_2(sdw_connect, "test", -1)
+        config_commands = [ACL1_1, ACL1_2, ACL1_3, ACL2_1, ACL1_2]
         ACL1_1 = "int Gi1/0/1"
         ACL1_2 = "no ip policy route-map test"
         ACL1_3 = "exit"
@@ -200,21 +202,24 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
         ACL1_2 = "no ip policy route-map test"
 
         for i in range(len(config_commands)):
-            cisco_output = list((sdw_connect.send_config_set(ACL[i])).split('\n'))
+            cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
         return
     ACL1_1 = ""
-    if (cisco_addr_src == "-1" or cisco_mask_src == "-1"):
-        ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + "any" + + "any"
-    elif (port == []):
-        ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any"
+    if (cisco_addr_src == "-1" or cisco_mask_src == "-1" or port == []):
+        return
     else:
+        config_commands = [ACL1_0]
         for pt in port:
-            ACL1_1 = "access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any" + + " eq " + pt
-    ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
-    config_commands = [ACL1_0, ACL1_1, ACL1_2]
-    for i in range(len(config_commands)):
-        cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
-    return
+            config_commands.append("access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any" + + " eq " + pt)
+        ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
+        config_commands.append(ACL1_2)
+        for i in range(len(config_commands)):
+            cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
+        set_PBR_2(sdw_connect, "test", 101)
+        config_commands = ["int Gi1/0/1", "ip policy route-map test", "exit", "int Gi1/0/12", "no ip policy route-map test"]
+        for i in range(len(config_commands)):
+            cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
+        return
 
 def unset_ACL(sdw_connect, nb_ACL):
     """
@@ -233,6 +238,18 @@ def set_PBR(sdw_connect, cisco_interface, name_pbr, nb_ACL, addr_route):
     """
     config_commands = ["int " + cisco_interface, "no switchport", "ip policy route-map " + name_pbr, "exit",
             "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL), "set ip next-hop " + addr_route]
+    cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
+    return
+
+def set_PBR_2(sdw_connect, name_pbr, nb_ACL):
+    """
+    This function set PBR configuration on an interface
+    """
+    config_commands = []
+    if nb_ACL == -1:
+            config_commands = ["route-map " + name_pbr + " permit 10", "no match ip address"]
+    else:
+        config_commands = ["route-map " + name_pbr + " permit 10", "no match ip address", "match ip address " + str(nb_ACL)]
     cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
     return
 
