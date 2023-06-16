@@ -35,6 +35,7 @@ class StageController:
                              format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
         signal.signal(signal.SIGINT, signal_handler)
+        self.SetACL = False
         
     def stageCTR(self, queueSCTR, queueSAI):
         print("stage1")
@@ -50,10 +51,17 @@ class StageController:
                 msg = queueSAI.get()    # get msg from SAI
                 if (msg == "update lists"):
                     print("! ! ! SController RECEIVED from SAI:", msg)
+                elif(msg.isnumeric()):
+                    if (self.SetACL):
+                        self.SetACL = False
+                        Cport = ["NOACL"]
+                    else:
+                        self.SetACL = True
+                        Cport = ["80", "443"]
                 else :
                     Cport = msg.split('|') ## example : 80|40
             npr.set_ACL(sdw1_connect, 101, cisco_addr_src = "192.168.4.0", cisco_mask_src = "0.0.0.255", port=Cport)
-            if Cport[0] == "NOACL" or Cport == []:
+            if Cport == [] or Cport[0] == "NOACL":
                 ACL_SET = False
             else:
                 ACL_SET = True
@@ -70,7 +78,7 @@ class StageController:
             latency_max = -1
             bandwidth = -1
             try:
-                A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.9")
+                A, B, C = collect_notraffic(sdw1_connect, "192.168.8.254", "192.168.50.9")
                 if A["I_rate_bit"] and B["I_rate_bit"]:
                     throughput_I[0] = A["I_rate_bit"]
                     throughput_I[1] = B["I_rate_bit"]
@@ -85,9 +93,9 @@ class StageController:
                     bandwidth = C["ABw"]
                     if idx == 9:
                         idx = 0
-                    latency_data[idx] = C["RTT-min"]
-                    latency_data[idx+1] = C["RTT-avg"]
-                    latency_data[idx+2] = C["RTT-max"]
+                    latency_data[idx] = float(C["RTT-min"])
+                    latency_data[idx+1] = float(C["RTT-avg"])
+                    latency_data[idx+2] = float(C["RTT-max"])
                     idx += 3
                     logging.info("latency_data = " + str(latency_data))
                     latency_avg = numpy.average(latency_data)
@@ -109,7 +117,7 @@ class StageController:
 
 if __name__ == "__main__":
     sdw1_connect = npr.create_SSH(1)
-    A, B, C = collect_notraffic(sdw1_connect, "192.168.4.1", "192.168.50.9")
+    A, B, C = collect_notraffic(sdw1_connect, "192.168.8.254", "192.168.50.9")
     # A, B, C = collect_notraffic("192.168.4.22", "192.168.140.10")
     print(A)
     print(B)

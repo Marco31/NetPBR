@@ -210,7 +210,7 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     else:
         config_commands = [ACL1_0]
         for pt in port:
-            config_commands.append("access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any" + + " eq " + pt)
+            config_commands.append("access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any" + " eq " + pt)
         ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
         config_commands.append(ACL1_2)
         for i in range(len(config_commands)):
@@ -267,7 +267,7 @@ def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, a
 # ssh cisco@192.168.8.254
 sdwan1 = {
     'device_type': 'cisco_ios',
-    'host':   '192.168.4.1', #  192.168.8.254
+    'host':   '192.168.8.254', #  192.168.4.1 192.168.8.254 
     'username': 'cisco',
     'password': 'ping123',
     # 'port' : 22,          # optional, defaults to 22

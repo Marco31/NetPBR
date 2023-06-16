@@ -5,6 +5,8 @@ import logging
 class StageAI:
     def __init__(self):
         logging.basicConfig(filename="src/logs/AI.log", level=logging.INFO)
+        self.loop_nb = 0
+        self.SetACL = False
     def stageAI(self, queueS1, queueS2):
         print("stage2")
         while True:
@@ -18,6 +20,8 @@ class StageAI:
                 print("Data not ready")
             elif msg == 's1 is DONE ':
                 break # ends While loop
+            elif(self.loop_nb == 0):
+                PreQueue = "NOACL"
             else:
                 # Perform Action
                 Qlist = msg.split('|')
@@ -46,7 +50,18 @@ class StageAI:
                 # PreQueue = "NOACL"
                 # otherwise if you want  for example to reroute http (80) and https (443) do
                 # PreQueue = "80|443"
-                
+                if self.loop_nb % 10:
+                    if self.SetACL:
+                        self.SetACL = False
+                        PreQueue = "NOACL"
+                        print("Unset ACL")
+                        logging.info("Unset ACL")
+                    else:
+                        self.SetACL = True
+                        PreQueue = "80|443"
+                        print("Set ACL for port 80 and 443")
+                        logging.info("Set ACL for port 80 and 443")
+            self.loop_nb +=1
             time.sleep(1) # work
             # Send Request
             queueS2.put(PreQueue)
