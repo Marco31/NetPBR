@@ -13,7 +13,7 @@ if __name__ == '__main__':
     queueSAI = Queue()  # SAI.stageAI() writes to queueSAI
 
     # start AI as another process
-    SAI = Process(target=SAI.stageAI, args=(queueSCTR, queueSAI))
+    SAI = Process(target=SAI.stage4AI, args=(queueSCTR, queueSAI))
     SAI.daemon = True
     SAI.start()     # Launch the AI process
 

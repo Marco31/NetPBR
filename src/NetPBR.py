@@ -120,7 +120,7 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     cisco_ping["round_trip_max"] = data[10]
     return cisco_ping
 
-    ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
+    # ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
 
 def get_latency_2(cisco_addr_dest):
     """
@@ -191,18 +191,17 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     this function set ACL on cisco router
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
-    if (port == ["NACL"]):
+    if (port == ["NOACL"]):
         cisco_output = list((sdw_connect.send_config_set(ACL1_0)).split('\n'))
         set_PBR_2(sdw_connect, "test", -1)
-        config_commands = [ACL1_1, ACL1_2, ACL1_3, ACL2_1, ACL1_2]
         ACL1_1 = "int Gi1/0/1"
         ACL1_2 = "no ip policy route-map test"
-        ACL1_3 = "exit"
-        ACL2_1 = "int Gi1/0/12"
-        ACL1_2 = "no ip policy route-map test"
+        # ACL1_3 = "exit"
+        # ACL2_1 = "int Gi1/0/2"
+        # ACL2_2 = "no ip policy route-map test"
+        config_commands = [ACL1_1, ACL1_2]
 
-        for i in range(len(config_commands)):
-            cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
+        cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
         return
     ACL1_1 = ""
     if (cisco_addr_src == "-1" or cisco_mask_src == "-1" or port == []):
@@ -210,15 +209,14 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     else:
         config_commands = [ACL1_0]
         for pt in port:
-            config_commands.append("access-list " + str(nb_ACL) + " permit ip " + cisco_addr_src + " " + cisco_mask_src +" any" + " eq " + pt)
+            config_commands.append("access-list " + str(nb_ACL) + " permit tcp " + cisco_addr_src + " " + cisco_mask_src +" any" + " eq " + pt)
         ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
         config_commands.append(ACL1_2)
         for i in range(len(config_commands)):
             cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
         set_PBR_2(sdw_connect, "test", 101)
-        config_commands = ["int Gi1/0/1", "ip policy route-map test", "exit", "int Gi1/0/12", "no ip policy route-map test"]
-        for i in range(len(config_commands)):
-            cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
+        config_commands = ["int Gi1/0/1", "ip policy route-map test", "exit"] #"int Gi1/0/2", "ip policy route-map test"
+        cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
         return
 
 def unset_ACL(sdw_connect, nb_ACL):
@@ -267,7 +265,7 @@ def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, a
 # ssh cisco@192.168.8.254
 sdwan1 = {
     'device_type': 'cisco_ios',
-    'host':   '192.168.8.254', #  192.168.4.1 192.168.8.254 
+    'host':   '192.168.201.1', #  192.168.4.1 192.168.8.254 
     'username': 'cisco',
     'password': 'ping123',
     # 'port' : 22,          # optional, defaults to 22
@@ -278,7 +276,7 @@ sdwan1 = {
 # ssh cisco@192.168.8.218
 sdwan2 = {
     'device_type': 'cisco_ios',
-    'host':   '192.168.8.218',
+    'host':   '192.168.202.1', # 192.168.50.1
     'username': 'cisco',
     'password': 'ping123',
     # 'port' : 22,          # optional, defaults to 22

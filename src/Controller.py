@@ -44,6 +44,7 @@ class StageController:
         while not end:
             # Check if Request is receive 
             sdw1_connect = npr.create_SSH(1)
+            sdw2_connect = npr.create_SSH(2)
             Cport = []
 
             # Perform Action
@@ -61,10 +62,13 @@ class StageController:
                 else :
                     Cport = msg.split('|') ## example : 80|40
             npr.set_ACL(sdw1_connect, 101, cisco_addr_src = "192.168.4.0", cisco_mask_src = "0.0.0.255", port=Cport)
+            npr.set_ACL(sdw2_connect, 102, cisco_addr_src = "0.0.0.0", cisco_mask_src = "255.255.255.255", port=Cport)
             if Cport == [] or Cport[0] == "NOACL":
                 ACL_SET = False
+                logging.info("ACL Unset")
             else:
                 ACL_SET = True
+                logging.info("ACL Set")
             time.sleep(1) # work
 
             # Collect & Prepare Data

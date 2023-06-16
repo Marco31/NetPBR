@@ -2,12 +2,19 @@ import time
 import ast
 import logging
 
+DEBUG = True
+
 class StageAI:
     def __init__(self):
-        logging.basicConfig(filename="src/logs/AI.log", level=logging.INFO)
+        logging.basicConfig(filename="src/logs/AI.log",
+                             level=logging.INFO,
+                             format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
+        logging.info("Init AI...")
+        print("Init AI...")
         self.loop_nb = 0
         self.SetACL = False
-    def stageAI(self, queueS1, queueS2):
+    def stage4AI(self, queueS1, queueS2):
         print("stage2")
         while True:
             # Check if Request is receive 
@@ -50,17 +57,19 @@ class StageAI:
                 # PreQueue = "NOACL"
                 # otherwise if you want  for example to reroute http (80) and https (443) do
                 # PreQueue = "80|443"
-                if self.loop_nb % 10:
-                    if self.SetACL:
-                        self.SetACL = False
-                        PreQueue = "NOACL"
-                        print("Unset ACL")
-                        logging.info("Unset ACL")
-                    else:
-                        self.SetACL = True
-                        PreQueue = "80|443"
-                        print("Set ACL for port 80 and 443")
-                        logging.info("Set ACL for port 80 and 443")
+
+                if DEBUG:
+                    if self.loop_nb % 1000:
+                        if self.SetACL:
+                            self.SetACL = False
+                            PreQueue = "NOACL"
+                            print("Unset ACL...")
+                            logging.info("Unset ACL...")
+                        else:
+                            self.SetACL = True
+                            PreQueue = "80|443"
+                            print("Set ACL for port 80 and 443...")
+                            logging.info("Set ACL for port 80 and 443...")
             self.loop_nb +=1
             time.sleep(1) # work
             # Send Request
