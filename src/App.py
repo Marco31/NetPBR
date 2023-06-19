@@ -1,3 +1,4 @@
+"""Application Module that create an AI thread and a Controller thread."""
 from multiprocessing import Process, Queue
 import Controller
 import AI
@@ -17,5 +18,5 @@ if __name__ == '__main__':
     SAI.daemon = True
     SAI.start()     # Launch the AI process
 
-    SController.stageCTR(queueSCTR, queueSAI) # start sending stuff from s1 to s2 
+    SController.stageCTR(queueSCTR, queueSAI) # start sending stuff from s1 to s2
     SController.join() # wait till s2 daemon finishes

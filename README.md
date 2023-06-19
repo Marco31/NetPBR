@@ -10,6 +10,11 @@ Launch NetPBR Application with the following command :
 
 Warning : replace XXX.XXX.104.1 -> XXX.XXX.50.1
 
+### Code Analysis
+
+    pyflakes src/*.py
+    pylint --disable=C0200 src/*.py
+
 ### Install dependancies
     pip3 install -r requirement.txt
 

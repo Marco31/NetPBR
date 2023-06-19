@@ -1,11 +1,13 @@
-from netmiko import ConnectHandler
-from parse import *
-from tcp_latency import measure_latency
+"""Module that purpose function for managing cisco switch and testing network."""
 import subprocess
+from netmiko import ConnectHandler
+from parse import parse
+from .libs import measure_latency
 
 DEBUG = True
 
 def get_int(cisco_name, cisco_interface, sdw_connect):
+    """Function to get information about interfaces."""
     cmd = "sh int " + cisco_interface + " | inc drops|bits"
     cisco_output = list((sdw_connect.send_command(cmd)).split('\n'))
     for j in range(len(cisco_output)):
@@ -36,7 +38,7 @@ def get_int(cisco_name, cisco_interface, sdw_connect):
         # print(cisco_output[i])
         parsed.append(parse(template[i], cisco_output[i]))
     # print(list(parsed[0].fixed))
-    if (parsed[0] != None):
+    if (parsed[0] is not None):
         for i in range(len(parsed)):
             data0 = list(parsed[i].fixed)
             for j in range(len(data0)):
@@ -45,7 +47,7 @@ def get_int(cisco_name, cisco_interface, sdw_connect):
         print("error with " + cisco_name + " " + cisco_interface)
         print(cisco_output)
         return -1
-    
+
     # print(data)
     cisco_int["cisco_name"] = cisco_name
     cisco_int["cisco_interface"] = cisco_interface
@@ -100,12 +102,12 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     # print(list(parsed[0].fixed))
     # print(parsed[0])
     for i in range(len(parsed)):
-        if (parsed[i] == None):
+        if (parsed[i] is None):
             continue
         data0 = list(parsed[i].fixed)
         for j in range(len(data0)):
             data.append(data0[j])
-    
+
     # print(data)
     cisco_ping["cisco_name"] = cisco_name
     cisco_ping["cisco_addr_src"] = cisco_addr_src # =data[2]
@@ -120,19 +122,19 @@ def get_latency(cisco_name, cisco_addr_src, cisco_addr_dest, sdw_connect):
     cisco_ping["round_trip_max"] = data[10]
     return cisco_ping
 
-    # ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src +" " + cisco_addr_dest + " " + cisco_mask_dest
+    # ACL = "access-list 102 permit ip " + cisco_addr_src + " " + cisco_mask_src
+    # +" " + cisco_addr_dest + " " + cisco_mask_dest
 
 def get_latency_2(cisco_addr_dest):
     """
     Return of tcplatency request
     """
-    A = measure_latency(host=cisco_addr_dest, runs=1, timeout=2)
-    return A
+    return measure_latency(host=cisco_addr_dest, runs=1, timeout=2)
 
 def get_latency_3(cisco_addr_dest):
     """
     Return parse of abing request (https://github.com/RichardWithnell/abing)
-    This function is not 
+    This function is not
     """
     abing = {
     "ID" : "SDWAN99",
@@ -145,16 +147,16 @@ def get_latency_3(cisco_addr_dest):
     "RTT-max" : -1,
     "RTT-timeout" : -1,
     }
-    B = ""
+    latency_3 = ""
     if not DEBUG:
-        A = subprocess.run(['abing', '-d', 'cisco_addr_dest'], stdout=subprocess.PIPE)
-        B = A.stdout
+        latency_3_str = subprocess.run(['abing', '-d', cisco_addr_dest], stdout=subprocess.PIPE, check=True)
+        latency_3 = latency_3_str.stdout
     else:
-        B = """1686830131 T: 192.168.50.9 ABw-Xtr-DBC:  10.7   0.4  11.1 ABW:  10.7 Mbps RTT: 7.322 7.550 7.913 ms 20 20
+        latency_3 = """1686830131 T: 192.168.50.9 ABw-Xtr-DBC:  10.7   0.4  11.1 ABW:  10.7 Mbps RTT: 7.322 7.550 7.913 ms 20 20
     1686830131 F: 192.168.50.9 ABw-Xtr-DBC:   9.7   0.1   9.8 ABW:   9.7 Mbps RTT: 7.322 7.550 7.913 ms 20 20"""
-    B = list(B.split('\n'))
-    for j in range(len(B)):
-            B[j] = B[j].strip()
+    latency_3 = list(latency_3.split('\n'))
+    for j in range(len(latency_3)):
+        latency_3[j] = latency_3[j].strip()
 
     template = ["{} T: {} ABw-Xtr-DBC:  {}   {}  {} ABW:  {} Mbps RTT: {} {} {} ms {} {}",
                 "{} F: {} ABw-Xtr-DBC:   {}   {}  {} ABW:   {} Mbps RTT: {} {} {} ms {} {}"]
@@ -163,11 +165,11 @@ def get_latency_3(cisco_addr_dest):
     for i in range(len(template)):
         # print(cisco_output[i])
         # print(template[i])
-        parsed.append(parse(template[i], B[i]))
+        parsed.append(parse(template[i], latency_3[i]))
     # print(list(parsed[0].fixed))
     # print(parsed[0])
     for i in range(len(parsed)):
-        if (parsed[i] == None):
+        if (parsed[i] is None):
             continue
         data0 = list(parsed[i].fixed)
         for j in range(len(data0)):
@@ -186,13 +188,13 @@ def get_latency_3(cisco_addr_dest):
     return abing
 
 
-def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", port=[]):
+def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", ports=None):
     """
     this function set ACL on cisco router
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
-    if (port == ["NOACL"]):
-        cisco_output = list((sdw_connect.send_config_set(ACL1_0)).split('\n'))
+    if (ports == ["NOACL"]):
+        list((sdw_connect.send_config_set(ACL1_0)).split('\n'))
         set_PBR_2(sdw_connect, "test", -1)
         ACL1_1 = "int Gi1/0/1"
         ACL1_2 = "no ip policy route-map test"
@@ -201,23 +203,18 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
         # ACL2_2 = "no ip policy route-map test"
         config_commands = [ACL1_1, ACL1_2]
 
-        cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
-        return
-    ACL1_1 = ""
-    if (cisco_addr_src == "-1" or cisco_mask_src == "-1" or port == []):
-        return
-    else:
+        list((sdw_connect.send_config_set(config_commands)).split('\n'))
+
+    elif not (cisco_addr_src == "-1" or cisco_mask_src == "-1" or ports is None):
         config_commands = [ACL1_0]
-        for pt in port:
-            config_commands.append("access-list " + str(nb_ACL) + " permit tcp " + cisco_addr_src + " " + cisco_mask_src +" any" + " eq " + pt)
-        ACL1_2 = "access-list " + str(nb_ACL) + " deny ip any any "
-        config_commands.append(ACL1_2)
+        for port in ports:
+            config_commands.append("access-list " + str(nb_ACL) + " permit tcp " + cisco_addr_src + " " + cisco_mask_src +" any" + " eq " + port)
         for i in range(len(config_commands)):
-            cisco_output = list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
+            list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
         set_PBR_2(sdw_connect, "test", 101)
         config_commands = ["int Gi1/0/1", "ip policy route-map test", "exit"] #"int Gi1/0/2", "ip policy route-map test"
-        cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
-        return
+        list((sdw_connect.send_config_set(config_commands)).split('\n'))
+
 
 def unset_ACL(sdw_connect, nb_ACL):
     """
@@ -225,9 +222,7 @@ def unset_ACL(sdw_connect, nb_ACL):
     """
     ACL1_0 = "no access-list " + str(nb_ACL)
     send_config_set = [ACL1_0]
-    for i in range(len(send_config_set)):
-        cisco_output = list((sdw_connect.send_config_set(send_config_set[i])).split('\n'))
-    return
+    list((sdw_connect.send_config_set(send_config_set)).split('\n'))
 
 
 def set_PBR(sdw_connect, cisco_interface, name_pbr, nb_ACL, addr_route):
@@ -236,8 +231,8 @@ def set_PBR(sdw_connect, cisco_interface, name_pbr, nb_ACL, addr_route):
     """
     config_commands = ["int " + cisco_interface, "no switchport", "ip policy route-map " + name_pbr, "exit",
             "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL), "set ip next-hop " + addr_route]
-    cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
-    return
+    list((sdw_connect.send_config_set(config_commands)).split('\n'))
+
 
 def set_PBR_2(sdw_connect, name_pbr, nb_ACL):
     """
@@ -245,11 +240,11 @@ def set_PBR_2(sdw_connect, name_pbr, nb_ACL):
     """
     config_commands = []
     if nb_ACL == -1:
-            config_commands = ["route-map " + name_pbr + " permit 10", "no match ip address"]
+        config_commands = ["route-map " + name_pbr + " permit 10", "no match ip address"]
     else:
         config_commands = ["route-map " + name_pbr + " permit 10", "no match ip address", "match ip address " + str(nb_ACL)]
-    cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
-    return
+    list((sdw_connect.send_config_set(config_commands)).split('\n'))
+
 
 def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, addr_route):
     """
@@ -257,15 +252,15 @@ def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, a
     """
     config_commands = ["int " + cisco_interface, "switchport", "no route-map " + name_pbr, "exit",
             "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL), "set ip next-hop " + addr_route]
-    cisco_output = list((sdw_connect.send_config_set(config_commands)).split('\n'))
-    return
+    list((sdw_connect.send_config_set(config_commands)).split('\n'))
+
 
 # Following IP need to be change
 
 # ssh cisco@192.168.8.254
 sdwan1 = {
     'device_type': 'cisco_ios',
-    'host':   '192.168.201.1', #  192.168.4.1 192.168.8.254 
+    'host':   '192.168.201.1', #  192.168.4.1 192.168.8.254
     'username': 'cisco',
     'password': 'ping123',
     # 'port' : 22,          # optional, defaults to 22
@@ -308,20 +303,19 @@ protocols = [
     ["Cisco", [5004]] # UDP
 ]
 
-def create_SSH(s : int):
+def create_SSH(nb_sdw : int):
     """
     Return ConnectHandler object to control cisco device
     """
-    if (s == 1):
+    if (nb_sdw == 1):
         sdw1_connect = ConnectHandler(**sdwan1)
         sdw1_connect.enable()
         return sdw1_connect
-    elif (s == 2):
+    if (nb_sdw == 2):
         sdw2_connect = ConnectHandler(**sdwan2)
         sdw2_connect.enable()
         return sdw2_connect
-    else:
-        return 0
+    return 0
 
 def remove_SSH(sdw_connect):
     """
@@ -330,14 +324,5 @@ def remove_SSH(sdw_connect):
     sdw_connect.disconnect()
 
 if __name__ == "__main__":
-    # sdw1_connect, sdw2_connect = create_SSH(2)
-    # set_PBR(sdw1_connect, "Gi1/0/24", "pbrsdw1", "192.168.4.1")
-    # set_PBR(sdw2_connect, "Gi1/0/24", "pbrsdw2", "192.168.8.218")
-
-    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-    # set_ACL(links[0][0], "0.0.0.255", links[0][1], "0.0.0.255", 102, sdw1_connect)
-    # remove_SSH(sdw1_connect)
-    # remove_SSH(sdw2_connect)
-    # C = get_latency_2("192.168.50.1")
     C = get_latency_3("192.168.50.9")
     print(C)
