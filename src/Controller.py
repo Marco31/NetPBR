@@ -1,4 +1,7 @@
 """Module Controller Manage Controller thread and communicate with AI thread."""
+
+__author__ = 'Marc VEYSSEYRE'
+
 import time
 import sys
 import signal
@@ -46,25 +49,26 @@ class StageController:
             lst_port = msg.split('|')
             if (lst_port == [] or lst_port[0] == "NOACL"):
                 self.SetACL = False
-                logging.info("ACL Unset (mode 0) (" + self.SetACL + ")")
+                logging.info("ACL Unset (mode 0) (" + str(self.SetACL) + ")")
             else:
                 self.SetACL = True
-                logging.info("ACL Set (mode 0) (" + self.SetACL + ")" )
+                logging.info("ACL Set (mode 0) (" + str(self.SetACL) + ")" )
         else:
             if (self.SetACL):
                 self.SetACL = False
-                logging.info("ACL Unset (mode 1) (" + self.SetACL + ")")
+                logging.info("ACL Unset (mode 1) (" + str(self.SetACL) + ")")
                 lst_port = ["NOACL"]
             else:
                 self.SetACL = True
-                logging.info("ACL Set (mode 1) (" + self.SetACL + ")" )
+                logging.info("ACL Set (mode 1) (" + str(self.SetACL) + ")" )
                 lst_port = ["80", "443"]
         return lst_port
 
-    def sendcmd(self, sdw_lst : list, nbacl:int, addr_src:list, mask_src:list, lst_port:list):
+    def sendcmd(self, sdw_lst : list, nbacl:int, interfaces:list, addr_src:list, mask_src:list, lst_port:list):
         """Function to call NetPBR to set ACL according to AI request."""
-        for i in range(sdw_lst):
-            npr.set_ACL(sdw_lst[i], nbacl, cisco_addr_src = addr_src[i],
+        for i in range(len(sdw_lst)):
+            npr.set_ACL(sdw_lst[i], nbacl, interfaces[i],
+                        cisco_addr_src = addr_src[i],
                          cisco_mask_src = mask_src[i], ports=lst_port)
         # npr.set_ACL(sdw1_connect, 101, cisco_addr_src = IP_CLIENT_NET,
         #  cisco_mask_src = "0.0.0.255", ports=lst_port)
@@ -94,8 +98,11 @@ class StageController:
                      ## example : 80|40
 
             self.sendcmd([sdw1_connect, sdw2_connect],
-                         101, [IP_CLIENT_NET, "0.0.0.0"],
+                         101, ["Gi1/0/24", "Gi1/0/24"], [IP_CLIENT_NET, "0.0.0.0"],
                           ["0.0.0.255", "255.255.255.255"], lst_port)
+            # self.sendcmd([sdw1_connect],
+            #              101, [IP_CLIENT_NET],
+            #               ["0.0.0.255"], lst_port)
 
             time.sleep(1) # work
 
@@ -145,6 +152,7 @@ class StageController:
             # Send Data
             queueSCTR.put(pre_queue)
             npr.remove_ssh(sdw1_connect)
+            npr.remove_ssh(sdw2_connect)
         print(self.end)
         queueSCTR.put('s1 is DONE')
 

@@ -1,1 +1,3 @@
-from tcp_latency import measure_latency
+__author__ = 'Marc VEYSSEYRE'
+
+from .tcp_latency import *

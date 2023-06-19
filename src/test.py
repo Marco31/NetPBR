@@ -1,4 +1,7 @@
 """Module test, as it's name suggest, test NetPBR library"""
+
+__author__ = 'Marc VEYSSEYRE'
+
 import NetPBR as npr
 
 def set_ACL_test():

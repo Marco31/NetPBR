@@ -1,8 +1,10 @@
 """Module AI Manage AI thread and communicate with Controller thread."""
+
+__author__ = 'Marc VEYSSEYRE'
+
 import time
 import ast
 import logging
-import keyboard
 
 DEBUG = True
 
@@ -75,8 +77,7 @@ class StageAI:
                 # pre_queue = "80|443"
 
                 if DEBUG:
-                    if keyboard.is_pressed('s'):
-                        print('You Pressed S Key!')
+                    if self.loop_nb % 1000:
                         if self.set_ACL:
                             self.set_ACL = False
                             pre_queue = "NOACL"
@@ -91,6 +92,8 @@ class StageAI:
             time.sleep(1) # work
             # Send Request
             queueS2.put(pre_queue)
+            print("Applied")
+            time.sleep(9) # work
 
 if __name__ == '__main__':
     print("Start AI")

@@ -1,4 +1,7 @@
 """Application Module that create an AI thread and a Controller thread."""
+
+__author__ = 'Marc VEYSSEYRE'
+
 from multiprocessing import Process, Queue
 import Controller
 import AI

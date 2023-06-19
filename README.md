@@ -2,6 +2,7 @@
 
 ## For User
 Launch NetPBR Application with the following command :
+
     python3.11 src/App.py
 
 ## For Developer
@@ -16,7 +17,7 @@ Warning : replace XXX.XXX.104.1 -> XXX.XXX.50.1
     pylint --disable=C0200,C0301,C0325 src/*.py
 
 ### Install dependancies
-    pip3 install -r requirement.txt
+    python3.11 -m pip install -r requirement.txt
 
 ### Diagram
 <img src="resources/Diag-Sequence.png"
@@ -25,16 +26,14 @@ Warning : replace XXX.XXX.104.1 -> XXX.XXX.50.1
 
 ### AI Input
 
-- lst_service_channel (??)
-- throughput (bit/s)
-- pck_loss (%)
-- latency_avg (tcp-latency)
-- latency_sigma (tcp-latency)
-- latency_max (tcp-latency)
-- Available_Bandwidth : bandwidth (abing)
+- throughput (bit/s, from Cisco switch)
+- pck_loss (%, from Cisco switch)
+- latency_avg (from abing)
+- latency_sigma (from abing)
+- latency_max (from abing)
+- Available_Bandwidth : bandwidth (from abing)
 
 ## In Development
 TODO :
- - [X] support case where connexion failed
  - [ ] test PBR
- - [X] TCPlatency
+ - [ ] fetch list of services use by interface (??)

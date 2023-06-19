@@ -1,8 +1,11 @@
 """Module that purpose function for managing cisco switch and testing network."""
+
+__author__ = 'Marc VEYSSEYRE'
+
 import subprocess
 from netmiko import ConnectHandler
 from parse import parse
-from .libs import measure_latency
+from libs import measure_latency
 
 DEBUG = True
 
@@ -239,7 +242,7 @@ def get_latency_3(cisco_addr_dest):
     return abing
 
 
-def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", ports=None):
+def set_ACL(sdw_connect, nb_ACL:int, interface:str ,cisco_addr_src = "-1", cisco_mask_src = "-1", ports=None):
     """
     this function set ACL on cisco router
     """
@@ -247,7 +250,7 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     if (ports == ["NOACL"]):
         list((sdw_connect.send_config_set(acl1_0)).split('\n'))
         set_PBR_2(sdw_connect, "test", -1)
-        acl1_1 = "int Gi1/0/1"
+        acl1_1 = "int" + interface
         acl1_2 = "no ip policy route-map test"
         # ACL1_3 = "exit"
         # ACL2_1 = "int Gi1/0/2"
@@ -263,7 +266,7 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
         for i in range(len(config_commands)):
             list((sdw_connect.send_config_set(config_commands[i])).split('\n'))
         set_PBR_2(sdw_connect, "test", 101)
-        config_commands = ["int Gi1/0/1", "ip policy route-map test", "exit"] #"int Gi1/0/2", "ip policy route-map test"
+        config_commands = ["int " + str(interface), "ip policy route-map test", "exit"] #"int Gi1/0/2", "ip policy route-map test"
         list((sdw_connect.send_config_set(config_commands)).split('\n'))
 
 
