@@ -97,12 +97,12 @@ class StageController:
                     lst_port = self.switchmode(msg)
                      ## example : 80|40
 
-            self.sendcmd([sdw1_connect, sdw2_connect],
-                         101, ["Gi1/0/24", "Gi1/0/24"], [IP_CLIENT_NET, "0.0.0.0"],
-                          ["0.0.0.255", "255.255.255.255"], lst_port)
-            # self.sendcmd([sdw1_connect],
-            #              101, [IP_CLIENT_NET],
-            #               ["0.0.0.255"], lst_port)
+            #self.sendcmd([sdw1_connect, sdw2_connect],
+            #             101, ["Gi1/0/24", "Gi1/0/24"], [IP_CLIENT_NET, "0.0.0.0"],
+            #              ["0.0.0.255", "255.255.255.255"], lst_port)
+            self.sendcmd([sdw1_connect],
+                          101, ["Gi1/0/24"], [IP_CLIENT_NET],
+                           ["0.0.0.255"], lst_port)
 
             time.sleep(1) # work
 

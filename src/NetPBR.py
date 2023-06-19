@@ -7,7 +7,7 @@ from netmiko import ConnectHandler
 from parse import parse
 from libs import measure_latency
 
-DEBUG = True
+DEBUG = False
 
 # Following IP need to be change
 
@@ -203,11 +203,13 @@ def get_latency_3(cisco_addr_dest):
     }
     latency_3 = ""
     if not DEBUG:
-        latency_3_str = subprocess.run(['abing', '-d', cisco_addr_dest], stdout=subprocess.PIPE, check=True)
+        latency_3_str = subprocess.run(['./src/libs/abing', '-d', "192.168.202.11", "-t", "1", "-n","1"], stdout=subprocess.PIPE, check=False)
         latency_3 = latency_3_str.stdout
     else:
         latency_3 = """1686830131 T: 192.168.50.9 ABw-Xtr-DBC:  10.7   0.4  11.1 ABW:  10.7 Mbps RTT: 7.322 7.550 7.913 ms 20 20
     1686830131 F: 192.168.50.9 ABw-Xtr-DBC:   9.7   0.1   9.8 ABW:   9.7 Mbps RTT: 7.322 7.550 7.913 ms 20 20"""
+    latency_3 = latency_3.decode("utf-8")
+    print(latency_3)
     latency_3 = list(latency_3.split('\n'))
     for j in range(len(latency_3)):
         latency_3[j] = latency_3[j].strip()
