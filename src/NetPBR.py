@@ -6,6 +6,57 @@ from .libs import measure_latency
 
 DEBUG = True
 
+# Following IP need to be change
+
+# ssh cisco@192.168.8.254
+sdwan1 = {
+    'device_type': 'cisco_ios',
+    'host':   '192.168.201.1', #  192.168.4.1 192.168.8.254
+    'username': 'cisco',
+    'password': 'ping123',
+    # 'port' : 22,          # optional, defaults to 22
+    'secret': 'ping123',     # optional, defaults to ''
+    "session_log": 'src/logs/netmiko_session1.log',
+}
+
+# ssh cisco@192.168.8.218
+sdwan2 = {
+    'device_type': 'cisco_ios',
+    'host':   '192.168.202.1', # 192.168.50.1
+    'username': 'cisco',
+    'password': 'ping123',
+    # 'port' : 22,          # optional, defaults to 22
+    'secret': 'ping123',     # optional, defaults to ''
+    "session_log": 'src/logs/netmiko_session2.log',
+}
+
+machine = ["sdwan1", "sdwan2"]
+int_lst = ["Gi1/0/1", "Gi1/0/2"]
+links = [["10.1.1.1", "10.2.3.2"], ["10.2.1.1", "10.3.3.2"],
+          ["192.168.4.1", "192.168.8.218"]] #[src, dst], ...]
+protocols = [
+    ["Echo", [7]],
+    ["FTP", [21,20]],
+    ["SSH", [22]],
+    ["Telnet", [23]],
+    ["SMTP", [25]],
+    ["TFTP", [69]],
+    ["HTTP", [80, ]],
+    ["POP", [109, 110]],
+    ["SQL", [118]],
+    ["IMAP", [143]],
+    ["LDAP", [389]],
+    ["HTTPS", [443]],
+    ["TLS-SSL", [465]],
+    ["DHCPS", [546, 547]],
+    ["IMAPS", [585]],
+    ["SMTP", [587]],
+    ["LDAPS", [636]],
+    ["Cisco", [5004]] # UDP
+]
+
+
+
 def get_int(cisco_name, cisco_interface, sdw_connect):
     """Function to get information about interfaces."""
     cmd = "sh int " + cisco_interface + " | inc drops|bits"
@@ -192,21 +243,21 @@ def set_ACL(sdw_connect, nb_ACL, cisco_addr_src = "-1", cisco_mask_src = "-1", p
     """
     this function set ACL on cisco router
     """
-    ACL1_0 = "no access-list " + str(nb_ACL)
+    acl1_0 = "no access-list " + str(nb_ACL)
     if (ports == ["NOACL"]):
-        list((sdw_connect.send_config_set(ACL1_0)).split('\n'))
+        list((sdw_connect.send_config_set(acl1_0)).split('\n'))
         set_PBR_2(sdw_connect, "test", -1)
-        ACL1_1 = "int Gi1/0/1"
-        ACL1_2 = "no ip policy route-map test"
+        acl1_1 = "int Gi1/0/1"
+        acl1_2 = "no ip policy route-map test"
         # ACL1_3 = "exit"
         # ACL2_1 = "int Gi1/0/2"
         # ACL2_2 = "no ip policy route-map test"
-        config_commands = [ACL1_1, ACL1_2]
+        config_commands = [acl1_1, acl1_2]
 
         list((sdw_connect.send_config_set(config_commands)).split('\n'))
 
     elif not (cisco_addr_src == "-1" or cisco_mask_src == "-1" or ports is None):
-        config_commands = [ACL1_0]
+        config_commands = [acl1_0]
         for port in ports:
             config_commands.append("access-list " + str(nb_ACL) + " permit tcp " + cisco_addr_src + " " + cisco_mask_src +" any" + " eq " + port)
         for i in range(len(config_commands)):
@@ -220,8 +271,8 @@ def unset_ACL(sdw_connect, nb_ACL):
     """
     this function unset ACL on cisco router
     """
-    ACL1_0 = "no access-list " + str(nb_ACL)
-    send_config_set = [ACL1_0]
+    acl1_0 = "no access-list " + str(nb_ACL)
+    send_config_set = [acl1_0]
     list((sdw_connect.send_config_set(send_config_set)).split('\n'))
 
 
@@ -255,55 +306,8 @@ def unset_PBR(sdw_connect : ConnectHandler, cisco_interface, name_pbr, nb_ACL, a
     list((sdw_connect.send_config_set(config_commands)).split('\n'))
 
 
-# Following IP need to be change
 
-# ssh cisco@192.168.8.254
-sdwan1 = {
-    'device_type': 'cisco_ios',
-    'host':   '192.168.201.1', #  192.168.4.1 192.168.8.254
-    'username': 'cisco',
-    'password': 'ping123',
-    # 'port' : 22,          # optional, defaults to 22
-    'secret': 'ping123',     # optional, defaults to ''
-    "session_log": 'src/logs/netmiko_session1.log',
-}
-
-# ssh cisco@192.168.8.218
-sdwan2 = {
-    'device_type': 'cisco_ios',
-    'host':   '192.168.202.1', # 192.168.50.1
-    'username': 'cisco',
-    'password': 'ping123',
-    # 'port' : 22,          # optional, defaults to 22
-    'secret': 'ping123',     # optional, defaults to ''
-    "session_log": 'src/logs/netmiko_session2.log',
-}
-
-machine = ["sdwan1", "sdwan2"]
-int_lst = ["Gi1/0/1", "Gi1/0/2"]
-links = [["10.1.1.1", "10.2.3.2"], ["10.2.1.1", "10.3.3.2"], ["192.168.4.1", "192.168.8.218"]] #[src, dst], ...]
-protocols = [
-    ["Echo", [7]],
-    ["FTP", [21,20]],
-    ["SSH", [22]],
-    ["Telnet", [23]],
-    ["SMTP", [25]],
-    ["TFTP", [69]],
-    ["HTTP", [80, ]],
-    ["POP", [109, 110]],
-    ["SQL", [118]],
-    ["IMAP", [143]],
-    ["LDAP", [389]],
-    ["HTTPS", [443]],
-    ["TLS-SSL", [465]],
-    ["DHCPS", [546, 547]],
-    ["IMAPS", [585]],
-    ["SMTP", [587]],
-    ["LDAPS", [636]],
-    ["Cisco", [5004]] # UDP
-]
-
-def create_SSH(nb_sdw : int):
+def create_ssh(nb_sdw : int):
     """
     Return ConnectHandler object to control cisco device
     """
@@ -317,7 +321,7 @@ def create_SSH(nb_sdw : int):
         return sdw2_connect
     return 0
 
-def remove_SSH(sdw_connect):
+def remove_ssh(sdw_connect):
     """
     remove SSH connexion
     """

@@ -13,7 +13,7 @@ Warning : replace XXX.XXX.104.1 -> XXX.XXX.50.1
 ### Code Analysis
 
     pyflakes src/*.py
-    pylint --disable=C0200 src/*.py
+    pylint --disable=C0200,C0301,C0325 src/*.py
 
 ### Install dependancies
     pip3 install -r requirement.txt

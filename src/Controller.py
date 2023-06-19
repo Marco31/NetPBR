@@ -7,6 +7,9 @@ import logging
 import numpy
 import NetPBR as npr
 
+IP_CLIENT_NET = "192.168.4.0"
+IP_SERVER_ABING = "192.168.50.9"
+
 
 def collect_notraffic(sdw_connect, ip_dest):
     """Function collect data without generate traffic."""
@@ -18,8 +21,6 @@ def collect_notraffic(sdw_connect, ip_dest):
 
 class StageController:
     """Class representing a Controller thread"""
-    ACL_SET = False
-
     def __init__(self):
         logging.basicConfig(filename="src/logs/Controller.log",
                              level=logging.INFO,
@@ -39,6 +40,37 @@ class StageController:
         self.end = True
         sys.exit(0) # To be remove
 
+    def switchmode(self, msg = None):
+        """Function to permut ACL mode."""
+        if (msg):
+            lst_port = msg.split('|')
+            if (lst_port == [] or lst_port[0] == "NOACL"):
+                self.SetACL = False
+                logging.info("ACL Unset (mode 0) (" + self.SetACL + ")")
+            else:
+                self.SetACL = True
+                logging.info("ACL Set (mode 0) (" + self.SetACL + ")" )
+        else:
+            if (self.SetACL):
+                self.SetACL = False
+                logging.info("ACL Unset (mode 1) (" + self.SetACL + ")")
+                lst_port = ["NOACL"]
+            else:
+                self.SetACL = True
+                logging.info("ACL Set (mode 1) (" + self.SetACL + ")" )
+                lst_port = ["80", "443"]
+        return lst_port
+
+    def sendcmd(self, sdw_lst : list, nbacl:int, addr_src:list, mask_src:list, lst_port:list):
+        """Function to call NetPBR to set ACL according to AI request."""
+        for i in range(sdw_lst):
+            npr.set_ACL(sdw_lst[i], nbacl, cisco_addr_src = addr_src[i],
+                         cisco_mask_src = mask_src[i], ports=lst_port)
+        # npr.set_ACL(sdw1_connect, 101, cisco_addr_src = IP_CLIENT_NET,
+        #  cisco_mask_src = "0.0.0.255", ports=lst_port)
+        # npr.set_ACL(sdw2_connect, 102, cisco_addr_src = "0.0.0.0",
+        #  cisco_mask_src = "255.255.255.255", ports=lst_port)
+
 
     def stageCTR(self, queueSCTR, queueSAI):
         """Function where Controller thread is start."""
@@ -46,8 +78,8 @@ class StageController:
 
         while not self.end:
             # Check if Request is receive
-            sdw1_connect = npr.create_SSH(1)
-            sdw2_connect = npr.create_SSH(2)
+            sdw1_connect = npr.create_ssh(1)
+            sdw2_connect = npr.create_ssh(2)
             lst_port = []
 
             # Perform Action
@@ -56,22 +88,15 @@ class StageController:
                 if (msg == "update lists"):
                     print("! ! ! SController RECEIVED from SAI:", msg)
                 elif(msg.isnumeric()):
-                    if (self.SetACL):
-                        self.SetACL = False
-                        lst_port = ["NOACL"]
-                    else:
-                        self.SetACL = True
-                        lst_port = ["80", "443"]
+                    lst_port = self.switchmode()
                 else :
-                    lst_port = msg.split('|') ## example : 80|40
-            npr.set_ACL(sdw1_connect, 101, cisco_addr_src = "192.168.4.0", cisco_mask_src = "0.0.0.255", ports=lst_port)
-            npr.set_ACL(sdw2_connect, 102, cisco_addr_src = "0.0.0.0", cisco_mask_src = "255.255.255.255", ports=lst_port)
-            if lst_port == [] or lst_port[0] == "NOACL":
-                ACL_SET = False
-                logging.info("ACL Unset (" + ACL_SET + ")")
-            else:
-                ACL_SET = True
-                logging.info("ACL Set (" + ACL_SET + ")" )
+                    lst_port = self.switchmode(msg)
+                     ## example : 80|40
+
+            self.sendcmd([sdw1_connect, sdw2_connect],
+                         101, [IP_CLIENT_NET, "0.0.0.0"],
+                          ["0.0.0.255", "255.255.255.255"], lst_port)
+
             time.sleep(1) # work
 
             # Collect & Prepare Data
@@ -85,7 +110,7 @@ class StageController:
             latency_max = -1
             bandwidth = -1
             try:
-                int_1, int_2, latency = collect_notraffic(sdw1_connect, "192.168.50.9")
+                int_1, int_2, latency = collect_notraffic(sdw1_connect, IP_SERVER_ABING)
                 if int_1["I_rate_bit"] and int_2["I_rate_bit"]:
                     throughput_input[0] = int_1["I_rate_bit"]
                     throughput_input[1] = int_2["I_rate_bit"]
@@ -119,15 +144,14 @@ class StageController:
 
             # Send Data
             queueSCTR.put(pre_queue)
-            npr.remove_SSH(sdw1_connect)
+            npr.remove_ssh(sdw1_connect)
         print(self.end)
         queueSCTR.put('s1 is DONE')
 
 if __name__ == "__main__":
-    sdw01_connect = npr.create_SSH(1)
-    int_01, int_02, latency0 = collect_notraffic(sdw01_connect, "192.168.50.9")
-    # int_1, int_2, latency = collect_notraffic("192.168.4.22", "192.168.140.10")
+    sdw01_connect = npr.create_ssh(1)
+    int_01, int_02, latency0 = collect_notraffic(sdw01_connect, IP_SERVER_ABING)
     print(int_01)
     print(int_01)
     print(latency0)
-    npr.remove_SSH(sdw01_connect)
+    npr.remove_ssh(sdw01_connect)

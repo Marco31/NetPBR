@@ -2,6 +2,7 @@
 import time
 import ast
 import logging
+import keyboard
 
 DEBUG = True
 
@@ -16,6 +17,27 @@ class StageAI:
         print("Init AI...")
         self.loop_nb = 0
         self.set_ACL = False
+        self.lst_service_channel = None
+        self.throughput_input = None
+        self.throughput_output = None
+        self.pck_loss = None
+        self.latency_avg = None
+        self.latency_sigma = None
+        self.latency_max = None
+        self.bandwidth = None
+
+    def pased_q_list(self, qlst):
+        """Function to parse queue list send from Controler into data useful for AI."""
+        # latency_sdw1_2_sdw2 = q_list[2]
+        self.lst_service_channel = ast.literal_eval(qlst[0])
+         # throughput_input by interface (bit/s) [Gi1/0/1, Gi1/0/2]
+        self.throughput_input = ast.literal_eval(qlst[1])
+        self.throughput_output = ast.literal_eval(qlst[2])
+        self.pck_loss = ast.literal_eval(qlst[3])
+        self.latency_avg = float(qlst[4])
+        self.latency_sigma = float(qlst[5])
+        self.latency_max = float(qlst[6])
+        self.bandwidth = float(qlst[7])
 
     def stage4AI(self, queueS1, queueS2):
         """Function where AI thread is start."""
@@ -36,35 +58,25 @@ class StageAI:
             else:
                 # Perform Action
                 q_list = msg.split('|')
-                # int_sdwan_1 = ast.literal_eval(q_list[0])
-                # int_sdwan_2 = ast.literal_eval(q_list[1])
-                # latency_sdw1_2_sdw2 = q_list[2]
-                lst_service_channel = ast.literal_eval(q_list[0])
-                 # throughput_input by interface (bit/s) [Gi1/0/1, Gi1/0/2]
-                throughput_input = ast.literal_eval(q_list[1])
-                throughput_output = ast.literal_eval(q_list[2])
-                pck_loss = ast.literal_eval(q_list[3])
-                latency_avg = float(q_list[4])
-                latency_sigma = float(q_list[5])
-                latency_max = float(q_list[6])
-                bandwidth = float(q_list[7])
+                self.pased_q_list(q_list)
 
                 print("- - - sAI RECEIVED from sController:")
-                print(lst_service_channel)
-                print(throughput_input) # by interface
-                print(throughput_output) # by interface
-                print(pck_loss) # by interface
-                print(latency_avg)
-                print(latency_sigma)
-                print(latency_max)
-                print(bandwidth)
+                print(self.lst_service_channel)
+                print(self.throughput_input) # by interface
+                print(self.throughput_output) # by interface
+                print(self.pck_loss) # by interface
+                print(self.latency_avg)
+                print(self.latency_sigma)
+                print(self.latency_max)
+                print(self.bandwidth)
                 # if network is not full do
                 # pre_queue = "NOACL"
                 # otherwise if you want  for example to reroute http (80) and https (443) do
                 # pre_queue = "80|443"
 
                 if DEBUG:
-                    if self.loop_nb % 1000:
+                    if keyboard.is_pressed('s'):
+                        print('You Pressed S Key!')
                         if self.set_ACL:
                             self.set_ACL = False
                             pre_queue = "NOACL"
