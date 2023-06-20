@@ -8,6 +8,23 @@ import logging
 
 DEBUG = True
 
+from DQN import Agent
+from Utils import plotLearning
+from gym_sdwan_stat.envs import sdwan_stat_env
+import gym
+import numpy as np
+from networkEnv import NetworkEnv
+import time
+
+# Enregistrement de l'environnement
+
+gym.register(
+    id='NetworkEnv-v0',
+    entry_point='networkEnv:NetworkEnv',
+    kwargs={'threshold_a': 5, 'threshold_b': 7, 'threshold_c': 30, 'alpha': 30, 'beta': 0}
+)
+
+
 class StageAI:
     """Class representing a AI thread"""
     def __init__(self):
