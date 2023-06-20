@@ -24,6 +24,10 @@ gym.register(
     kwargs={'threshold_a': 5, 'threshold_b': 7, 'threshold_c': 30, 'alpha': 30, 'beta': 0}
 )
 
+env = gym.make('NetworkEnv-v0')
+agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=2, eps_end=0.01,input_dims=[3], lr=0.001)
+scores, eps_history = [], []
+n_games = 5000
 
 class StageAI:
     """Class representing a AI thread"""
@@ -44,6 +48,8 @@ class StageAI:
         self.latency_sigma = None
         self.latency_max = None
         self.bandwidth = None
+
+        self.action = None
 
     def pased_q_list(self, qlst):
         """Function to parse queue list send from Controler into data useful for AI."""
@@ -66,6 +72,8 @@ class StageAI:
             pre_queue = "update lists"
             msg = queueS1.get()    # wait till there is a msg from sController
 
+            #msg = "nothing"
+
             if msg == "ERR_CISCO":
                 print("Cisco switch disconnect")
             elif msg == "ERR_DATA":
@@ -75,7 +83,9 @@ class StageAI:
             elif(self.loop_nb == 0):
                 pre_queue = "NOACL"
             else:
-                # Perform Action
+
+
+                Perform Action
                 q_list = msg.split('|')
                 self.pased_q_list(q_list)
 
@@ -92,6 +102,72 @@ class StageAI:
                 # pre_queue = "NOACL"
                 # otherwise if you want  for example to reroute http (80) and https (443) do
                 # pre_queue = "80|443"
+
+                # AI beginning
+
+                score = 0
+                done = False
+
+                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
+                observation = env.reset()
+
+                i = 0
+                while not done:
+                    i += 1
+                    action = agent.choose_action(observation)
+
+                    observation_, reward, terminated, truncated = env.step(action)
+
+                    done = terminated or truncated
+                    score += reward
+                    agent.store_transition(observation, action, reward,
+                                           observation_, done)
+                    agent.learn()
+
+                    # on passe à l'observation suivante
+                    observation = observation_
+                    print("ob : ", observation)
+                    print("action : ", action)
+                    # print("reward: " , reward)
+
+                    # on attribue aux champs l'action retenue
+                    self.action = action
+
+                    print('action')
+
+                    # ## Changement de lien
+                    #
+                    # if self.action == 0:
+                    #     print("On envoie sur ethernet")
+                    #     pre_queue = "NOACL"
+                    #
+                    # else:
+                    #     print("on envoie sur MPLS")
+                    #     pre_queue = "80|443"
+
+                    if i > 10000:
+                        time.sleep(0.5)
+                    # time.sleep(0.6)
+                    if done:
+                        break
+
+                scores.append(score)
+                eps_history.append(agent.epsilon)
+                avg_score = np.mean(scores[-100:])
+                print('episode ', i, 'score %.2f' % score,
+                      'average score %.2f' % avg_score,
+                      'epsilon %.2f' % agent.epsilon)
+
+                ## Changement de lien
+
+                if self.action == 0:
+                    print("On envoie sur ethernet")
+                    pre_queue = "NOACL"
+
+                else:
+                    print("on envoie sur MPLS")
+                    pre_queue = "80|443"
+
 
                 if DEBUG:
                     print("self.loop_nb :" + str(self.loop_nb))
@@ -119,3 +195,15 @@ class StageAI:
 
 if __name__ == '__main__':
     print("Start AI")
+
+
+    # TEST lancement du main
+
+    # from multiprocessing import Process, Queue
+    # import Controller
+    #
+    # SAI = StageAI()
+    #
+    # queueSCTR = Queue()
+    # queueSAI = Queue()
+    # SAI.stage4AI(queueSCTR, queueSAI)
