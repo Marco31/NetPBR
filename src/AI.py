@@ -77,23 +77,28 @@ class StageAI:
                 # pre_queue = "80|443"
 
                 if DEBUG:
-                    if self.loop_nb % 1000:
+                    print("self.loop_nb :" + str(self.loop_nb))
+                    if self.loop_nb == 2:
                         if self.set_ACL:
                             self.set_ACL = False
-                            pre_queue = "NOACL"
-                            print("Unset ACL...")
-                            logging.info("Unset ACL...")
+                            pre_queue = "80|443"
+                            print("Set ACL for port 80 and 443 (2)...")
+                            # pre_queue = "NOACL"
+                            # print("Unset ACL...")
+                            # logging.info("Unset ACL...")
                         else:
                             self.set_ACL = True
                             pre_queue = "80|443"
                             print("Set ACL for port 80 and 443...")
                             logging.info("Set ACL for port 80 and 443...")
+                    else :
+                        pre_queue = "0"
             self.loop_nb +=1
             time.sleep(1) # work
             # Send Request
             queueS2.put(pre_queue)
             print("Applied")
-            time.sleep(9) # work
+            time.sleep(7) # work
 
 if __name__ == '__main__':
     print("Start AI")

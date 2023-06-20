@@ -45,7 +45,7 @@ class StageController:
 
     def switchmode(self, msg = None):
         """Function to permut ACL mode."""
-        if (msg):
+        if (msg): # Set ACL state according to msg
             lst_port = msg.split('|')
             if (lst_port == [] or lst_port[0] == "NOACL"):
                 self.SetACL = False
@@ -53,7 +53,7 @@ class StageController:
             else:
                 self.SetACL = True
                 logging.info("ACL Set (mode 0) (" + str(self.SetACL) + ")" )
-        else:
+        else: # Switch ACL state
             if (self.SetACL):
                 self.SetACL = False
                 logging.info("ACL Unset (mode 1) (" + str(self.SetACL) + ")")
@@ -64,12 +64,15 @@ class StageController:
                 lst_port = ["80", "443"]
         return lst_port
 
-    def sendcmd(self, sdw_lst : list, nbacl:int, interfaces:list, addr_src:list, mask_src:list, lst_port:list):
+    def sendcmd(self, sdw_lst : list, nbacl:int, interfaces:list, addr_src:list, mask_src:list, addr_dst:list, mask_dst:list, lst_port:list):
         """Function to call NetPBR to set ACL according to AI request."""
         for i in range(len(sdw_lst)):
             npr.set_ACL(sdw_lst[i], nbacl, interfaces[i],
                         cisco_addr_src = addr_src[i],
-                         cisco_mask_src = mask_src[i], ports=lst_port)
+                         cisco_mask_src = mask_src[i], 
+                         cisco_addr_dst = addr_dst[i],
+                         cisco_mask_dst = mask_dst[i], 
+                         ports=lst_port)
         # npr.set_ACL(sdw1_connect, 101, cisco_addr_src = IP_CLIENT_NET,
         #  cisco_mask_src = "0.0.0.255", ports=lst_port)
         # npr.set_ACL(sdw2_connect, 102, cisco_addr_src = "0.0.0.0",
@@ -91,18 +94,28 @@ class StageController:
                 msg = queueSAI.get()    # get msg from SAI
                 if (msg == "update lists"):
                     print("! ! ! SController RECEIVED from SAI:", msg)
-                elif(msg.isnumeric()):
+                elif(msg.isnumeric() and msg==1): # switch mode
                     lst_port = self.switchmode()
-                else :
+                elif(not msg.isnumeric()) : # switch mode according to msg
                     lst_port = self.switchmode(msg)
                      ## example : 80|40
 
-            #self.sendcmd([sdw1_connect, sdw2_connect],
+            # Send command with lst_port updated
+
+            # self.sendcmd([sdw1_connect, sdw2_connect],
             #             101, ["Gi1/0/24", "Gi1/0/24"], [IP_CLIENT_NET, "0.0.0.0"],
             #              ["0.0.0.255", "255.255.255.255"], lst_port)
-            self.sendcmd([sdw1_connect],
-                          101, ["Gi1/0/24"], [IP_CLIENT_NET],
-                           ["0.0.0.255"], lst_port)
+            if lst_port:
+                self.sendcmd([sdw1_connect, sdw2_connect],
+                            101, ["Gi1/0/24", "Gi1/0/24"],
+                            [IP_CLIENT_NET, "any"],["0.0.0.255", " "],
+                            ["any", "any"],[" ", " "],
+                            lst_port)
+            else :
+                logging.info("No need to send cmd to SDWAN")
+            # self.sendcmd([sdw1_connect],
+            #               101, ["Gi1/0/24"], [IP_CLIENT_NET],
+            #                ["0.0.0.255"], lst_port)
 
             time.sleep(1) # work
 
@@ -158,8 +171,10 @@ class StageController:
 
 if __name__ == "__main__":
     sdw01_connect = npr.create_ssh(1)
-    int_01, int_02, latency0 = collect_notraffic(sdw01_connect, IP_SERVER_ABING)
-    print(int_01)
-    print(int_01)
-    print(latency0)
+    sdw02_connect = npr.create_ssh(1)
+    # int_01, int_02, latency0 = collect_notraffic(sdw01_connect, IP_SERVER_ABING)
+    # print(int_01)
+    # print(int_01)
+    # print(latency0)
     npr.remove_ssh(sdw01_connect)
+    npr.remove_ssh(sdw02_connect)
