@@ -251,6 +251,10 @@ def set_ACL(sdw_connect, nb_ACL:int, interface:str , option ,cisco_addr_src = "-
     this function set ACL on cisco router
     """
     acl1_0 = "no access-list " + str(nb_ACL)
+    # print(str(sdw_connect) + str(nb_ACL) + str(interface) + str(option) + str(cisco_addr_src) + str(cisco_mask_src) + str(cisco_addr_dst) + str(cisco_mask_dst) + str(ports))
+    # print(str(ports == ["NOACL"]))
+    # print(str(bool(not (cisco_addr_src == "-1" or cisco_mask_src == "-1" or cisco_addr_dst == "-1" or cisco_mask_dst == "-1" or ports is None) and (option))))
+
     if (ports == ["NOACL"]):
         list((sdw_connect.send_config_set(acl1_0)).split('\n')) # no access-list
         acl1_1 = "int " + interface
@@ -263,7 +267,7 @@ def set_ACL(sdw_connect, nb_ACL:int, interface:str , option ,cisco_addr_src = "-
         list((sdw_connect.send_config_set(config_commands)).split('\n')) # "int " + interface, "no ip policy route-map test", "exit"
         set_PBR_2(sdw_connect, "test", 101, -2) # "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL)
 
-    elif not (cisco_addr_src == "-1" or cisco_mask_src == "-1" or cisco_addr_dst == "-1" or cisco_mask_dst == "-1" or ports is None) and (option):
+    elif bool(not (cisco_addr_src == "-1" or cisco_mask_src == "-1" or cisco_addr_dst == "-1" or cisco_mask_dst == "-1" or ports is None or option is None)):
         list((sdw_connect.send_config_set(acl1_0)).split('\n')) # no access-list
 
         set_PBR_2(sdw_connect, "test", 101, -1) # "route-map " + name_pbr + " permit 10", "no match ip address " + str(nb_ACL)
