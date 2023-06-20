@@ -246,7 +246,7 @@ def get_latency_3(cisco_addr_dest):
     return abing
 
 
-def set_ACL(sdw_connect, nb_ACL:int, interface:str ,cisco_addr_src = "-1", cisco_mask_src = "-1", cisco_addr_dst = "-1", cisco_mask_dst="-1", ports=None):
+def set_ACL(sdw_connect, nb_ACL:int, interface:str , option ,cisco_addr_src = "-1", cisco_mask_src = "-1", cisco_addr_dst = "-1", cisco_mask_dst="-1", ports=None):
     """
     this function set ACL on cisco router
     """
@@ -263,14 +263,14 @@ def set_ACL(sdw_connect, nb_ACL:int, interface:str ,cisco_addr_src = "-1", cisco
         list((sdw_connect.send_config_set(config_commands)).split('\n')) # "int " + interface, "no ip policy route-map test", "exit"
         set_PBR_2(sdw_connect, "test", 101, -2) # "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL)
 
-    elif not (cisco_addr_src == "-1" or cisco_mask_src == "-1" or cisco_addr_dst == "-1" or cisco_mask_dst == "-1" or ports is None):
+    elif not (cisco_addr_src == "-1" or cisco_mask_src == "-1" or cisco_addr_dst == "-1" or cisco_mask_dst == "-1" or ports is None) and (option):
         list((sdw_connect.send_config_set(acl1_0)).split('\n')) # no access-list
 
         set_PBR_2(sdw_connect, "test", 101, -1) # "route-map " + name_pbr + " permit 10", "no match ip address " + str(nb_ACL)
 
         config_commands = []
-        for port in ports:
-            config_commands.append("access-list " + str(nb_ACL) + " permit tcp " + cisco_addr_src + " " + cisco_mask_src + " " + cisco_addr_dst + " " + cisco_mask_dst + " eq " + port)
+        for i in range(len(ports)):
+            config_commands.append("access-list " + str(nb_ACL) + " permit tcp " + cisco_addr_src + " " + cisco_mask_src + " " + cisco_addr_dst + " " + cisco_mask_dst + " " + option[i] + " " + ports[i])
         list((sdw_connect.send_config_set(config_commands)).split('\n')) # access-list...
 
         set_PBR_2(sdw_connect, "test", 101, -2) # "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL)

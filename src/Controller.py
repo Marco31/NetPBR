@@ -64,10 +64,11 @@ class StageController:
                 lst_port = ["80", "443"]
         return lst_port
 
-    def sendcmd(self, sdw_lst : list, nbacl:int, interfaces:list, addr_src:list, mask_src:list, addr_dst:list, mask_dst:list, lst_port:list):
+    def sendcmd(self, sdw_lst : list, nbacl:int, interfaces:list, options:list ,addr_src:list, mask_src:list, addr_dst:list, mask_dst:list, lst_port:list):
         """Function to call NetPBR to set ACL according to AI request."""
         for i in range(len(sdw_lst)):
             npr.set_ACL(sdw_lst[i], nbacl, interfaces[i],
+                        option = options,
                         cisco_addr_src = addr_src[i],
                          cisco_mask_src = mask_src[i], 
                          cisco_addr_dst = addr_dst[i],
@@ -108,6 +109,7 @@ class StageController:
             if lst_port:
                 self.sendcmd([sdw1_connect, sdw2_connect],
                             101, ["Gi1/0/24", "Gi1/0/24"],
+                            ["eq", "eq", "gt"],
                             [IP_CLIENT_NET, "any"],["0.0.0.255", " "],
                             ["any", "any"],[" ", " "],
                             lst_port)
