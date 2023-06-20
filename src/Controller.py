@@ -93,12 +93,16 @@ class StageController:
             # Perform Action
             if not queueSAI.empty():
                 msg = queueSAI.get()    # get msg from SAI
+                logging.info("msg = " + str(msg))
+                logging.info("str(msg).isnumeric() = " + str(str(msg).isnumeric()) + " msg==1" + str(msg==1))
                 if (msg == "update lists"):
                     print("! ! ! SController RECEIVED from SAI:", msg)
-                elif(msg.isnumeric() and msg==1): # switch mode
+                elif(str(msg).isnumeric() and int(msg)==1): # switch mode
                     lst_port = self.switchmode()
-                elif(not msg.isnumeric()) : # switch mode according to msg
+                    logging.info("Switched mode -> lst_port = " + str(lst_port))
+                elif(not str(msg).isnumeric()) : # switch mode according to msg
                     lst_port = self.switchmode(msg)
+                    logging.info("Switched mode (w. msg) -> lst_port = " + str(lst_port))
                      ## example : 80|40
 
             # Send command with lst_port updated
@@ -107,12 +111,22 @@ class StageController:
             #             101, ["Gi1/0/24", "Gi1/0/24"], [IP_CLIENT_NET, "0.0.0.0"],
             #              ["0.0.0.255", "255.255.255.255"], lst_port)
             if lst_port:
-                self.sendcmd([sdw1_connect, sdw2_connect],
+                if lst_port != ["NOACL"]:
+                    logging.info("Set ACL via sendcmd")
+                    self.sendcmd([sdw1_connect, sdw2_connect],
                             101, ["Gi1/0/24", "Gi1/0/24"],
                             ["eq", "eq", "gt"],
                             [IP_CLIENT_NET, "any"],["0.0.0.255", " "],
                             ["any", "any"],[" ", " "],
                             lst_port)
+                else:
+                    logging.info("Unset ACL via sendcmd")
+                    self.sendcmd([sdw1_connect, sdw2_connect],
+                            101, ["Gi1/0/24", "Gi1/0/24"],
+                            [],
+                            [IP_CLIENT_NET, "any"],["0.0.0.255", " "],
+                            ["any", "any"],[" ", " "],
+                            ["NOACL"])
             else :
                 logging.info("No need to send cmd to SDWAN")
             # self.sendcmd([sdw1_connect],
