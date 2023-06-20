@@ -85,7 +85,7 @@ class StageAI:
             else:
 
 
-                Perform Action
+                # Perform Action
                 q_list = msg.split('|')
                 self.pased_q_list(q_list)
 
@@ -108,8 +108,8 @@ class StageAI:
                 score = 0
                 done = False
 
-                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
-                observation = env.reset()
+                observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
+                #observation = env.reset()
 
                 i = 0
                 while not done:
