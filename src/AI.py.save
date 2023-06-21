@@ -109,10 +109,11 @@ class StageAI:
                 score = 0
                 done = False
 
-                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
+                #)
                 #observation = env.reset(self.latency_avg, self.bandwidth, self.pck_loss)
                 observation = self.env.reset()
-                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
+		
+		
 
                 i = 0
                 while not done:

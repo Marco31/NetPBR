@@ -35,7 +35,7 @@ class NetworkEnv(gym.Env):
         self.LINK_SELECT_ACTION_INTERNET = 0
         self.LINK_SELECT_ACTION_MPLS = 1
 
-    def reset(self):
+    def reset(self,a=None,b=None,c=None):
         # self.state = np.zeros(3)
 
         a = np.abs(np.random.normal(self.a_mean, self.a_std))

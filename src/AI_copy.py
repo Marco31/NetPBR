@@ -24,7 +24,7 @@ gym.register(
     kwargs={'threshold_a': 5, 'threshold_b': 7, 'threshold_c': 30, 'alpha': 30, 'beta': 0}
 )
 
-# env = gym.make('NetworkEnv-v0')
+env = gym.make('NetworkEnv-v0')
 agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=2, eps_end=0.01,input_dims=[3], lr=0.001)
 scores, eps_history = [], []
 n_games = 5000
@@ -50,7 +50,6 @@ class StageAI:
         self.bandwidth = None
 
         self.action = None
-        self.env = gym.make('NetworkEnv-v0')
 
     def pased_q_list(self, qlst):
         """Function to parse queue list send from Controler into data useful for AI."""
@@ -71,9 +70,9 @@ class StageAI:
         while True:
             # Check if Request is receive
             pre_queue = "update lists"
-            msg = queueS1.get()    # wait till there is a msg from sController
+            # msg = queueS1.get()    # wait till there is a msg from sController
 
-            #msg = "nothing"
+            msg = "nothing"
 
             if msg == "ERR_CISCO":
                 print("Cisco switch disconnect")
@@ -87,18 +86,19 @@ class StageAI:
 
 
                 # Perform Action
-                q_list = msg.split('|')
-                self.pased_q_list(q_list)
+                # q_list = msg.split('|')
+                # self.pased_q_list(q_list)
 
-                print("- - - sAI RECEIVED from sController:")
-                print(self.lst_service_channel)
-                print(self.throughput_input) # by interface
-                print(self.throughput_output) # by interface
-                print(self.pck_loss) # by interface
-                print(self.latency_avg)
-                print(self.latency_sigma)
-                print(self.latency_max)
-                print(self.bandwidth)
+                #print("- - - sAI RECEIVED from sController:")
+                #print(self.lst_service_channel)
+                #print(self.throughput_input) # by interface
+                #print(self.throughput_output) # by interface
+                #print(self.pck_loss) # by interface
+                #print(self.latency_avg)
+                #print(self.latency_sigma)
+                #print(self.latency_max)
+                #print(self.bandwidth)
+
                 # if network is not full do
                 # pre_queue = "NOACL"
                 # otherwise if you want  for example to reroute http (80) and https (443) do
@@ -109,18 +109,15 @@ class StageAI:
                 score = 0
                 done = False
 
-                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
-                #observation = env.reset(self.latency_avg, self.bandwidth, self.pck_loss)
-                observation = self.env.reset()
-                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
+                # observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
+                observation = env.reset()
 
                 i = 0
                 while not done:
                     i += 1
                     action = agent.choose_action(observation)
 
-                    # observation_, reward, terminated, truncated = env.step(action)
-                    observation_, reward, terminated, truncated = self.env.step(action)
+                    observation_, reward, terminated, truncated = env.step(action)
 
                     done = terminated or truncated
                     score += reward
@@ -203,11 +200,11 @@ if __name__ == '__main__':
 
     # TEST lancement du main
 
-    # from multiprocessing import Process, Queue
-    # import Controller
+    from multiprocessing import Process, Queue
+    import Controller
+    
+    SAI = StageAI()
     #
-    # SAI = StageAI()
-    #
-    # queueSCTR = Queue()
-    # queueSAI = Queue()
-    # SAI.stage4AI(queueSCTR, queueSAI)
+    queueSCTR = Queue()
+    queueSAI = Queue()
+    SAI.stage4AI(queueSCTR, queueSAI)
