@@ -16,8 +16,8 @@ IP_SERVER_ABING = "192.168.50.9"
 
 def collect_notraffic(sdw_connect, ip_dest):
     """Function collect data without generate traffic."""
-    int_1_collect = npr.get_int("sdwan2_1", "Gi1/0/1", sdw_connect)
-    int_2_collect = npr.get_int("sdwan2_2", "Gi1/0/2", sdw_connect)
+    int_1_collect = npr.get_int("sdwan2_1", "Gi1/0/24", sdw_connect)
+    int_2_collect = npr.get_int("sdwan2_2", "Gi1/0/24", sdw_connect)
     latency_collect = npr.get_latency_3(ip_dest)
     logging.info("collect_notraffic -> latency = " + str(latency_collect))
     return int_1_collect,int_2_collect,latency_collect
@@ -70,9 +70,9 @@ class StageController:
             npr.set_ACL(sdw_lst[i], nbacl, interfaces[i],
                         option = options,
                         cisco_addr_src = addr_src[i],
-                         cisco_mask_src = mask_src[i], 
+                         cisco_mask_src = mask_src[i],
                          cisco_addr_dst = addr_dst[i],
-                         cisco_mask_dst = mask_dst[i], 
+                         cisco_mask_dst = mask_dst[i],
                          ports=lst_port)
         # npr.set_ACL(sdw1_connect, 101, cisco_addr_src = IP_CLIENT_NET,
         #  cisco_mask_src = "0.0.0.255", ports=lst_port)
