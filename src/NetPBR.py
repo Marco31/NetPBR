@@ -279,7 +279,7 @@ def set_ACL(sdw_connect, nb_ACL:int, interface:str , option ,cisco_addr_src = "-
 
         set_PBR_2(sdw_connect, "test", 101, -2) # "route-map " + name_pbr + " permit 10", "match ip address " + str(nb_ACL)
 
-        config_commands = ["int " + str(interface), "ip policy route-map test", "exit"] 
+        config_commands = ["int " + str(interface), "ip policy route-map test", "exit"]
         list((sdw_connect.send_config_set(config_commands)).split('\n'))#"int Gi1/0/2", "ip policy route-map test"
 
 
