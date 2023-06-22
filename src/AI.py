@@ -198,7 +198,7 @@ class StageAI:
             ## Send Request
             queueS2.put(pre_queue)
             print("Applied")
-            #time.sleep(7) # work
+            time.sleep(3) # work
             
             x=[k+1 for k in range(50)]
             #filename='sdwan.png'
