@@ -201,7 +201,7 @@ class StageAI:
                         
             x=[k+1 for k in range(50)]
             
-            filename = '../resources/Sdwan.png'
+            filename = 'home/user/Desktop/AI/netpbr/resources/Sdwan.png'
     
             if (len(scores) == len(x)):
                 print("je trace le graphe")
@@ -221,6 +221,24 @@ class StageAI:
             print("Applied")
             time.sleep(3) # work
             
+# Add Train function 
+    def train(self):
+        for episode in range(500):
+            latency_avg = random.uniform(0, 100)
+            bandwidth = random.uniform(0, 100)
+            pck_loss = random.uniform(0, 1)
+            observation = self.env.reset(latency_avg, bandwidth, pck_loss)
+            done = False
+            score = 0
+            while not done:
+                action = agent.choose_action(observation)
+                observation_, reward, terminated, truncated = self.env.step(action)
+                agent.learn(observation, action, reward, observation_, done)
+                observation = observation_
+                score += reward
+                scores.append(score)
+
+
 
 if __name__ == '__main__':
     print("Start AI")
