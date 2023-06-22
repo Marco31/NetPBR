@@ -57,11 +57,6 @@ class StageAI:
         self.loop = True
         self.counter = 0 
 
-        self.action = None
-        self.env = SDWANEnv()
-        self.loop = True
-        self.counter = 0 
-
     def pased_q_list(self, qlst):
         """Function to parse queue list send from Controler into data useful for AI."""
         # latency_sdw1_2_sdw2 = q_list[2]
@@ -84,14 +79,8 @@ class StageAI:
         while True:
             # Check if Request is receive
             pre_queue = "update lists"
-            
-            # Compteur pour la phase d'entrainement
-            if (self.counter > 1000):
-                self.loop = False
-            
-            if (self.loop == False):
-            
-                msg = queueS1.get()    # wait till there is a msg from sController
+                        
+            msg = queueS1.get()    # wait till there is a msg from sController
 
             if msg == "ERR_CISCO":
                 print("Cisco switch disconnect")
@@ -112,42 +101,27 @@ class StageAI:
                     self.latency_avg_before_after = []
                     self.bandwidth_before_after = []
 
-                    print("- - - sAI RECEIVED from sController:")
-                    print(self.lst_service_channel)
-                    print(self.throughput_input) # by interface
-                    print(self.throughput_output) # by interface
-                    print(self.pck_loss) # by interface
-                    print(self.latency_avg)
-                    print(self.latency_sigma)
-                    print(self.latency_max)
-                    print(self.bandwidth)
-                    # if network is not full do
-                    # pre_queue = "NOACL"
-                    # otherwise if you want  for example to reroute http (80) and https (443) do
-                    # pre_queue = "80|443"
-
-                    # AI beginning
+                print("- - - sAI RECEIVED from sController:")
+                print(self.lst_service_channel)
+                print(self.throughput_input) # by interface
+                print(self.throughput_output) # by interface
+                print(self.pck_loss) # by interface
+                print(self.latency_avg)
+                print(self.latency_sigma)
+                print(self.latency_max)
+                print(self.bandwidth)
+                # if network is not full do
+                # pre_queue = "NOACL"
+                # otherwise if you want  for example to reroute http (80) and https (443) do
+                # pre_queue = "80|443|1000"
+                
+                # AI beginning
             
             
-            # Fin du loop
                 score = 0
                 done = False
-
-                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
-                #observation = env.reset(self.latency_avg, self.bandwidth, self.pck_loss)
-                
-                
-                if (self.loop == True):
-                    self.latency = np.random.uniform(9, 50)
-                    self.bandwidth = np.random.uniform(400, 800)
-                    self.counter +=1 
                 
                 observation = self.env.reset(self.latency_avg, self.bandwidth,1)
-                
-                
-                
-                #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
-
 
                 while not done:
                     
@@ -172,17 +146,6 @@ class StageAI:
                     self.action = action
 
                     print('action')
-
-                    # ## Changement de lien
-                    #
-                    # if self.action == 0:
-                    #     print("On envoie sur ethernet")
-                    #     pre_queue = "NOACL"
-                    #
-                    # else:
-                    #     print("on envoie sur MPLS")
-                    #     pre_queue = "80|443"
-
                
                     # time.sleep(0.6)
                     if done:
@@ -235,36 +198,28 @@ class StageAI:
                             logging.info("Switch ACL mode")
                     else :
                         pre_queue = "0"
+                        
+            x=[k+1 for k in range(50)]
+            
+            filename = '../resources/Sdwan.png'
+    
+            if (len(scores) == len(x)):
+                print("je trace le graphe")
+                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
+                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
+                plotLearning(x,scores,eps_history,avg_scores,filename)
+                print("le graphe est tracé")
+            
+            #if (len(scores) == len(x) ):
+            #    print("ils sont de tailles similaires")
+            #    plotLearning(x,scores,eps_history,avg_scores,filename)
+
             self.loop_nb +=1
             #time.sleep(1) # work
             ## Send Request
             queueS2.put(pre_queue)
             print("Applied")
-            #time.sleep(3) # work
-            
-            x=[k+1 for k in range(50)]
-            #x=[k+1 for k in range(len(scores))]
-            
-            #filename='sdwan.png'
-            #filename = '../Sdwan.png'
-            #filename = '/home/user/Desktop/AI/netpbr/resources/Sdwan.png'
-            filename = '../resources/Sdwan.png'
-    
-            
-            
-            # plotLearning(x, scores, eps_history, filename)
-            if (len(scores) == len(x)):
-                print("je trace le graphe")
-                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
-                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
-                plotLearning(x,scores,eps_history,avg_scores,'Sdwan.png')
-                print("le graphe est tracé")
-            
-            
-            
-            #if (len(scores) == len(x) ):
-            #    print("ils sont de tailles similaires")
-            #    plotLearning(x,scores,eps_history,avg_scores,filename)
+            time.sleep(3) # work
             
 
 if __name__ == '__main__':
