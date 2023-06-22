@@ -31,6 +31,10 @@ Warning : All theses IP are private IP so you need to set IP in setting of the a
      alt="Sequence diagram"
      style="float: left; margin-right: 10px;" />
 
+<img src="resources/classes.png"
+     alt="Sequence diagram"
+     style="float: left; margin-right: 10px;" />
+
 ### AI Input
 
 - throughput (bit/s, from Cisco switch)
