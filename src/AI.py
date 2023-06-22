@@ -52,6 +52,8 @@ class StageAI:
 
         self.action = None
         self.env = SDWANEnv()
+        self.loop = True
+        self.counter = 0 
 
     def pased_q_list(self, qlst):
         """Function to parse queue list send from Controler into data useful for AI."""
@@ -73,47 +75,66 @@ class StageAI:
         while True:
             # Check if Request is receive
             pre_queue = "update lists"
-            msg = queueS1.get()    # wait till there is a msg from sController
+            
+            # Compteur pour la phase d'entrainement
+            if (self.counter > 1000):
+                self.loop = False
+            
+            if (self.loop == False):
+            
+                msg = queueS1.get()    # wait till there is a msg from sController
 
-            #msg = "nothing"
+                #msg = "nothing"
 
-            if msg == "ERR_CISCO":
-                print("Cisco switch disconnect")
-            elif msg == "ERR_DATA":
-                print("Data not ready")
-            elif msg == 's1 is DONE ':
-                break # ends While loop
-            elif(self.loop_nb == 0):
-                pre_queue = "NOACL"
-            else:
+                if msg == "ERR_CISCO":
+                    print("Cisco switch disconnect")
+                elif msg == "ERR_DATA":
+                    print("Data not ready")
+                elif msg == 's1 is DONE ':
+                    break # ends While loop
+                elif(self.loop_nb == 0):
+                    pre_queue = "NOACL"
+                else:
 
 
-                # Perform Action
-                q_list = msg.split('|')
-                self.pased_q_list(q_list)
+                    # Perform Action
+                    q_list = msg.split('|')
+                    self.pased_q_list(q_list)
 
-                print("- - - sAI RECEIVED from sController:")
-                print(self.lst_service_channel)
-                print(self.throughput_input) # by interface
-                print(self.throughput_output) # by interface
-                print(self.pck_loss) # by interface
-                print(self.latency_avg)
-                print(self.latency_sigma)
-                print(self.latency_max)
-                print(self.bandwidth)
-                # if network is not full do
-                # pre_queue = "NOACL"
-                # otherwise if you want  for example to reroute http (80) and https (443) do
-                # pre_queue = "80|443"
+                    print("- - - sAI RECEIVED from sController:")
+                    print(self.lst_service_channel)
+                    print(self.throughput_input) # by interface
+                    print(self.throughput_output) # by interface
+                    print(self.pck_loss) # by interface
+                    print(self.latency_avg)
+                    print(self.latency_sigma)
+                    print(self.latency_max)
+                    print(self.bandwidth)
+                    # if network is not full do
+                    # pre_queue = "NOACL"
+                    # otherwise if you want  for example to reroute http (80) and https (443) do
+                    # pre_queue = "80|443"
 
-                # AI beginning
-
+                    # AI beginning
+            
+            
+            # Fin du loop
                 score = 0
                 done = False
 
                 #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
                 #observation = env.reset(self.latency_avg, self.bandwidth, self.pck_loss)
+                
+                
+                if (self.loop == True):
+                    self.latency = np.random.uniform(9, 50)
+                    self.bandwidth = np.random.uniform(400, 800)
+                    self.counter +=1 
+                
                 observation = self.env.reset(self.latency_avg, self.bandwidth,1)
+                
+                
+                
                 #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
 
 
