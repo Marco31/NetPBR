@@ -1,26 +1,37 @@
 # NetPBR
 
 ## For User
-Launch NetPBR Application with the following command :
+### Install dependancies
+- You have to compile abing (https://github.com/RichardWithnell/abing) and move binaries to /src/libs
+```sh
+python3.11 -m pip install -r requirement.txt
+```
 
-    python3.11 src/App.py
+### Use
+- Launch NetPBR Application with the following command :
+
+```sh
+python3.11 src/App.py
+```
 
 ## For Developer
 
 ![Réseaux](resources/Network2.png)
 
-Warning : replace XXX.XXX.104.1 -> XXX.XXX.50.1
+Warning : All theses IP are private IP so you need to set IP in setting of the application according to your network
 
 ### Code Analysis
 
     pyflakes src/*.py
     pylint --disable=C0200,C0301,C0325 src/*.py
 
-### Install dependancies
-    python3.11 -m pip install -r requirement.txt
 
 ### Diagram
 <img src="resources/Diag-Sequence.png"
+     alt="Sequence diagram"
+     style="float: left; margin-right: 10px;" />
+
+<img src="resources/classes.png"
      alt="Sequence diagram"
      style="float: left; margin-right: 10px;" />
 

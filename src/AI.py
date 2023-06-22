@@ -49,6 +49,13 @@ class StageAI:
         self.latency_sigma = None
         self.latency_max = None
         self.bandwidth = None
+        self.bandwidth_before_after = None
+        self.latency_avg_before_after = None
+
+        self.action = None
+        self.env = SDWANEnv()
+        self.loop = True
+        self.counter = 0 
 
         self.action = None
         self.env = SDWANEnv()
@@ -67,6 +74,8 @@ class StageAI:
         self.latency_sigma = float(qlst[5])
         self.latency_max = float(qlst[6])
         self.bandwidth = float(qlst[7])
+        self.latency_avg_before_after = []
+        self.bandwidth_before_after = []
 
     def stage4AI(self, queueS1, queueS2):
         """Function where AI thread is start."""
@@ -84,22 +93,24 @@ class StageAI:
             
                 msg = queueS1.get()    # wait till there is a msg from sController
 
-                #msg = "nothing"
-
-                if msg == "ERR_CISCO":
-                    print("Cisco switch disconnect")
-                elif msg == "ERR_DATA":
-                    print("Data not ready")
-                elif msg == 's1 is DONE ':
-                    break # ends While loop
-                elif(self.loop_nb == 0):
-                    pre_queue = "NOACL"
-                else:
-
-
-                    # Perform Action
-                    q_list = msg.split('|')
-                    self.pased_q_list(q_list)
+            if msg == "ERR_CISCO":
+                print("Cisco switch disconnect")
+            elif msg == "ERR_DATA":
+                print("Data not ready")
+            elif msg == 's1 is DONE ':
+                break # ends While loop
+            elif(self.loop_nb == 0):
+                pre_queue = "NOACL"
+            else:
+                # Perform Action
+                q_list = msg.split('|')
+                self.pased_q_list(q_list)
+                if len(self.latency_avg_before_after) == 1:
+                    self.latency_avg_before_after.append(self.latency_avg)
+                    self.bandwidth_before_after.append(self.bandwidth)
+                elif len(self.latency_avg_before_after) == 2:
+                    self.latency_avg_before_after = []
+                    self.bandwidth_before_after = []
 
                     print("- - - sAI RECEIVED from sController:")
                     print(self.lst_service_channel)
@@ -207,6 +218,8 @@ class StageAI:
                     if self.loop_nb % 2 == 0:
                         if self.set_ACL:
                             self.set_ACL = not self.set_ACL
+                            self.latency_avg_before_after = [self.latency_avg]
+                            self.bandwidth_before_after = [self.bandwidth]
                             # pre_queue = "80|443|1000"
                             # print("Set ACL for port 80 and 443 (2)...")
                             pre_queue = "NOACL"
@@ -214,6 +227,8 @@ class StageAI:
                             logging.info("No ACL")
                         else:
                             self.set_ACL = not self.set_ACL
+                            self.latency_avg_before_after = [self.latency_avg]
+                            self.bandwidth_before_after = [self.bandwidth]
                             # pre_queue = "1"
                             pre_queue = "80|443|1000"
                             print("Switch ACL mode")
