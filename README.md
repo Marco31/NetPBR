@@ -1,11 +1,5 @@
 # NetPBR
 
-Hello to you young entrepreneur,
-
-Did you know that 95% of the population misuse internet network,
-
-so you want to be part of it ? You have to ask the rights questions.
-
 ## For User
 ### Install dependancies
 - You have to compile abing (https://github.com/RichardWithnell/abing) and move binaries to /src/libs
