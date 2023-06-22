@@ -26,7 +26,7 @@ class StageAI:
         self.latency_avg = None
         self.latency_sigma = None
         self.latency_max = None
-        self.bandwidth = None
+        self.bandwidth_before_after = None
 
     def pased_q_list(self, qlst):
         """Function to parse queue list send from Controler into data useful for AI."""
@@ -40,6 +40,8 @@ class StageAI:
         self.latency_sigma = float(qlst[5])
         self.latency_max = float(qlst[6])
         self.bandwidth = float(qlst[7])
+        self.latency_avg_before_after = []
+        self.bandwidth_before_after = []
 
     def stage4AI(self, queueS1, queueS2):
         """Function where AI thread is start."""
@@ -61,6 +63,12 @@ class StageAI:
                 # Perform Action
                 q_list = msg.split('|')
                 self.pased_q_list(q_list)
+                if len(self.latency_avg_before_after) == 1:
+                    self.latency_avg_before_after.append(self.latency_avg)
+                    self.bandwidth_before_after.append(self.bandwidth)
+                elif len(self.latency_avg_before_after) == 2:
+                    self.latency_avg_before_after = []
+                    self.bandwidth_before_after = []
 
                 print("- - - sAI RECEIVED from sController:")
                 print(self.lst_service_channel)
@@ -81,6 +89,8 @@ class StageAI:
                     if self.loop_nb % 2 == 0:
                         if self.set_ACL:
                             self.set_ACL = not self.set_ACL
+                            self.latency_avg_before_after = [self.latency_avg]
+                            self.bandwidth_before_after = [self.bandwidth]
                             # pre_queue = "80|443|1000"
                             # print("Set ACL for port 80 and 443 (2)...")
                             pre_queue = "NOACL"
@@ -88,6 +98,8 @@ class StageAI:
                             logging.info("No ACL")
                         else:
                             self.set_ACL = not self.set_ACL
+                            self.latency_avg_before_after = [self.latency_avg]
+                            self.bandwidth_before_after = [self.bandwidth]
                             # pre_queue = "1"
                             pre_queue = "80|443|1000"
                             print("Switch ACL mode")
