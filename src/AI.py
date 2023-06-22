@@ -156,9 +156,14 @@ class StageAI:
                     if done:
                         k+=1
                         break
+                
+                                        
+                scores.append(score)
+                #print("la taille de scores est :",scores)
+                
                 avg_score=np.mean(scores[:])
                 avg_scores.append(avg_score)
-                scores.append(score)
+
                 eps_history.append(agent.epsilon)
 
                 print('episode ',k, 'score %.2f' % score,
@@ -198,15 +203,29 @@ class StageAI:
             ## Send Request
             queueS2.put(pre_queue)
             print("Applied")
-            time.sleep(3) # work
+            #time.sleep(3) # work
             
             x=[k+1 for k in range(50)]
-            #filename='sdwan.png'
+            #x=[k+1 for k in range(len(scores))]
             
+            #filename='sdwan.png'
+            #filename = '../Sdwan.png'
             filename = '../Sdwan.png'
     
+            
+            
             # plotLearning(x, scores, eps_history, filename)
-            # plotLearning(x,scores,eps_history,avg_scores,filename)
+            if (len(scores)== len(x)):
+                print("je trace le graphe")
+                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
+                plotLearning(x,scores,eps_history,avg_scores,'Sdwan.png')
+                print("le graphe est tracé")
+            
+            
+            
+            #if (len(scores) == len(x) ):
+            #    print("ils sont de tailles similaires")
+            #    plotLearning(x,scores,eps_history,avg_scores,filename)
             
 
 if __name__ == '__main__':
