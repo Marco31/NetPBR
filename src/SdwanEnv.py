@@ -20,7 +20,7 @@ class SDWANEnv(gym.Env):
 
 
 
-    def reset(self,latency=15,bandwith=800,nb_flow=1):
+    def reset(self,latency=None,bandwith=None,nb_flow=1):
         self.latency = latency
         self.bandwidth = bandwith
         self.packet_loss = np.random.uniform(0, 1)
@@ -35,16 +35,16 @@ class SDWANEnv(gym.Env):
         # self.bandwidth = np.random.uniform(400, 800)
         # self.packet_loss = np.random.uniform(0, 1)
         if action == 0:  # INTERNET
-            self.latency -= 1
-            self.bandwidth += 2
+            self.latency -= 0.5
+            self.bandwidth += 0.5
             self.packet_loss -= 0.01
             # pass
         elif action == 1:  # MPLS
             # self.latency -= np.random.uniform(3, 4)
             # self.bandwidth -= np.random.uniform(0, 20)
             # self.packet_loss-= np.random.uniform(0, 0.2)
-            self.latency -= 2
-            self.bandwidth += 3
+            self.latency -= 1
+            self.bandwidth += 1.5
             self.packet_loss -= 0.02
         # if self.latency<0:
         #     self.latency=0
