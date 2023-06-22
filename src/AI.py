@@ -210,13 +210,15 @@ class StageAI:
             
             #filename='sdwan.png'
             #filename = '../Sdwan.png'
-            filename = '../Sdwan.png'
+            #filename = '/home/user/Desktop/AI/netpbr/resources/Sdwan.png'
+            filename = '../resources/Sdwan.png'
     
             
             
             # plotLearning(x, scores, eps_history, filename)
-            if (len(scores)== len(x)):
+            if (len(scores) == len(x)):
                 print("je trace le graphe")
+                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
                 #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
                 plotLearning(x,scores,eps_history,avg_scores,'Sdwan.png')
                 print("le graphe est tracé")
