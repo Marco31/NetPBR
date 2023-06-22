@@ -6,28 +6,29 @@ import time
 import ast
 import logging
 
-DEBUG = True
+DEBUG = False
 
 from DQN import Agent
 from Utils import plotLearning
-from gym_sdwan_stat.envs import sdwan_stat_env
+#from gym_sdwan_stat.envs import sdwan_stat_env
 import gym
 import numpy as np
-from networkEnv import NetworkEnv
+#from networkEnv import NetworkEnv
+from SdwanEnv import SDWANEnv
 import time
 
 # Enregistrement de l'environnement
 
-gym.register(
-    id='NetworkEnv-v0',
-    entry_point='networkEnv:NetworkEnv',
-    kwargs={'threshold_a': 5, 'threshold_b': 7, 'threshold_c': 30, 'alpha': 30, 'beta': 0}
-)
+#gym.register(
+#    id='NetworkEnv-v0',
+#    entry_point='networkEnv:NetworkEnv',
+#    kwargs={'threshold_a': 5, 'threshold_b': 7, 'threshold_c': 30, 'alpha': 30, #'beta': 0}
+#)
 
 # env = gym.make('NetworkEnv-v0')
 agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=2, eps_end=0.01,input_dims=[3], lr=0.001)
-scores, eps_history = [], []
-n_games = 5000
+scores, eps_history,avg_scores = [], [], []
+n_games = 50
 
 class StageAI:
     """Class representing a AI thread"""
@@ -50,7 +51,7 @@ class StageAI:
         self.bandwidth = None
 
         self.action = None
-        self.env = gym.make('NetworkEnv-v0')
+        self.env = SDWANEnv()
 
     def pased_q_list(self, qlst):
         """Function to parse queue list send from Controler into data useful for AI."""
@@ -68,6 +69,7 @@ class StageAI:
     def stage4AI(self, queueS1, queueS2):
         """Function where AI thread is start."""
         print("stage2")
+        k=0
         while True:
             # Check if Request is receive
             pre_queue = "update lists"
@@ -111,12 +113,12 @@ class StageAI:
 
                 #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
                 #observation = env.reset(self.latency_avg, self.bandwidth, self.pck_loss)
-                observation = self.env.reset()
+                observation = self.env.reset(self.latency_avg, self.bandwidth,1)
                 #observation = np.array([self.latency_avg, self.bandwidth, self.pck_loss])
 
-                i = 0
+
                 while not done:
-                    i += 1
+                    
                     action = agent.choose_action(observation)
 
                     # observation_, reward, terminated, truncated = env.step(action)
@@ -149,16 +151,17 @@ class StageAI:
                     #     print("on envoie sur MPLS")
                     #     pre_queue = "80|443"
 
-                    if i > 10000:
-                        time.sleep(0.5)
+               
                     # time.sleep(0.6)
                     if done:
+                        k+=1
                         break
-
+                avg_score=np.mean(scores[:])
+                avg_scores.append(avg_score)
                 scores.append(score)
                 eps_history.append(agent.epsilon)
-                avg_score = np.mean(scores[-100:])
-                print('episode ', i, 'score %.2f' % score,
+
+                print('episode ',k, 'score %.2f' % score,
                       'average score %.2f' % avg_score,
                       'epsilon %.2f' % agent.epsilon)
 
@@ -170,7 +173,7 @@ class StageAI:
 
                 else:
                     print("on envoie sur MPLS")
-                    pre_queue = "80|443"
+                    pre_queue = "80|443|1000"
 
 
                 if DEBUG:
@@ -191,11 +194,20 @@ class StageAI:
                     else :
                         pre_queue = "0"
             self.loop_nb +=1
-            time.sleep(1) # work
-            # Send Request
+            #time.sleep(1) # work
+            ## Send Request
             queueS2.put(pre_queue)
             print("Applied")
-            time.sleep(7) # work
+            #time.sleep(7) # work
+            
+            x=[k+1 for k in range(50)]
+            #filename='sdwan.png'
+            
+            filename = '../Sdwan.png'
+    
+            # plotLearning(x, scores, eps_history, filename)
+            # plotLearning(x,scores,eps_history,avg_scores,filename)
+            
 
 if __name__ == '__main__':
     print("Start AI")
