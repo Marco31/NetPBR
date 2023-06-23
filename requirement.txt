@@ -5,3 +5,6 @@ pytest
 tox>=3.8
 pre-commit
 coverage
+torch
+numpy
+gym
