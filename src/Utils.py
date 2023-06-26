@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import gym
 
+__author__ = 'Mehdi BAKKALI'
+
 def plotLearning(x, scores, epsilons, avg_scores, filename, lines=None):
     fig = plt.figure()
     ax = fig.add_subplot(111, label="1")
@@ -26,7 +28,7 @@ def plotLearning(x, scores, epsilons, avg_scores, filename, lines=None):
     ax2.yaxis.set_label_position('right')
     ax2.tick_params(axis='y', colors="C1")
 
-    # Plot average scores with a different color
+    #plot le score moyen
     ax2.plot(x, avg_scores, color="C2", linestyle="-")
     ax2.scatter(x, avg_scores, color="C2")
 
@@ -34,6 +36,7 @@ def plotLearning(x, scores, epsilons, avg_scores, filename, lines=None):
         for line in lines:
             plt.axvline(x=line)
 
+    plt.title("Apprentissage ").set_bbox(dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.2'))
     plt.savefig(filename)
 
 
