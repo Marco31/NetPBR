@@ -135,9 +135,7 @@ class StageAI:
                 
 
                 #print(self.latency_avg)
-                #observation = self.env.reset(self.latency_avg, self.bandwidth,1)
-                
-                observation = self.env.reset(np.uniform(6,30), np.uniform(8,25),1)
+                observation = self.env.reset(self.latency_avg, self.bandwidth,1)
             
                 if(modulo%2==0):
                     done=True
@@ -195,10 +193,15 @@ class StageAI:
                 ## Changement de lien
 
                 if self.action == 0:
-                    print("On envoie sur ethernet")
-                    pre_queue = "NOACL"
+                    if self.latency_avg > 20:
+                        print("on envoie sur MPLS")
+                        pre_queue = "80|443|1000"
+                    else:
+                        print("On envoie sur ethernet")
+                        pre_queue = "NOACL"
                     self.latency_avg_before_after = [self.latency_avg]
                     self.bandwidth_before_after = [self.bandwidth]                    
+
                 else:
                     print("on envoie sur MPLS")
                     pre_queue = "80|443|1000"
@@ -231,7 +234,7 @@ class StageAI:
                         
             
             
-            #filename = 'home/user/Desktop/AI/netpbr/resources/Sdwan.png'
+            # filename = 'home/user/Desktop/AI/netpbr/resources/Sdwan.png'
     
             # if (len(scores) == len(x)):
             #    print("je trace le graphe")
@@ -306,9 +309,10 @@ class StageAI:
             
         print("derniere valeur de epsilon :", agent.epsilon )
         
-       # x=[k+1 for k in range(number_episode)]       
-       # filename = '../Sdwan.png'
-       # plotLearning(x,scores,eps_history,avg_scores,filename)
+        x=[k+1 for k in range(number_episode)]       
+        filename = '../Sdwan.png'
+    
+        plotLearning(x,scores,eps_history,avg_scores,filename)
 
 
 
@@ -318,11 +322,11 @@ if __name__ == '__main__':
 
     # TEST lancement du main
 
-    from multiprocessing import Process, Queue
-    import Controller
-    
-    SAI = StageAI()
+    # from multiprocessing import Process, Queue
+    # import Controller
     #
-    queueSCTR = Queue()
-    queueSAI = Queue()
-    SAI.stage4AI(queueSCTR, queueSAI)
+    # SAI = StageAI()
+    #
+    # queueSCTR = Queue()
+    # queueSAI = Queue()
+    # SAI.stage4AI(queueSCTR, queueSAI)

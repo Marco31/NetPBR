@@ -11,7 +11,7 @@ import numpy
 import NetPBR as npr
 
 IP_CLIENT_NET = "192.168.4.0"
-IP_SERVER_ABING = "192.168.50.9"
+IP_SERVER_ABING = "192.168.202.6"
 
 
 def collect_notraffic(sdw_connect, ip_dest):
@@ -96,7 +96,8 @@ class StageController:
                 logging.info("msg = " + str(msg))
                 logging.info("str(msg).isnumeric() = " + str(str(msg).isnumeric()) + " msg==1" + str(msg==1))
                 if (msg == "update lists"):
-                    print("! ! ! SController RECEIVED from SAI:", msg)
+                    #print("! ! ! SController RECEIVED from SAI:", msg)
+                    print('')
                 elif(str(msg).isnumeric() and int(msg)==1): # switch mode
                     lst_port = self.switchmode()
                     logging.info("Switched mode -> lst_port = " + str(lst_port))
@@ -110,6 +111,8 @@ class StageController:
             # self.sendcmd([sdw1_connect, sdw2_connect],
             #             101, ["Gi1/0/24", "Gi1/0/24"], [IP_CLIENT_NET, "0.0.0.0"],
             #              ["0.0.0.255", "255.255.255.255"], lst_port)
+                
+            
             if lst_port:
                 if lst_port != ["NOACL"]:
                     logging.info("Set ACL via sendcmd")

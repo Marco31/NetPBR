@@ -7,7 +7,7 @@ from netmiko import ConnectHandler
 from parse import parse
 from libs import measure_latency
 
-DEBUG = True
+DEBUG = False
 
 # Following IP need to be change
 
@@ -204,8 +204,13 @@ def get_latency_3(cisco_addr_dest):
     "RTT-timeout" : -1,
     }
     latency_3 = ""
+    
+    DEBUG=False
     if not DEBUG:
-        latency_3_str = subprocess.run(['./src/libs/abing', '-d', "192.168.202.11", "-t", "1", "-n","1"], stdout=subprocess.PIPE, check=False)
+        latency_3_str = subprocess.run(['./src/libs/abing', '-d', "192.168.202.6", "-t", "1", "-n","1"], stdout=subprocess.PIPE, check=False)
+        
+        #/home/user/Downloads/abing-master/Bin/x86_64
+        #print("latency debug",latency_3_str)
         latency_3 = latency_3_str.stdout
         latency_3 = latency_3.decode("utf-8")
     else:
@@ -232,7 +237,8 @@ def get_latency_3(cisco_addr_dest):
         data0 = list(parsed[i].fixed)
         for j in range(len(data0)):
             data.append(data0[j])
-
+    #print("abing from data",data)
+    
     abing["ID"] = data[0]
     abing["addr_dest"] = data[1]
     abing["ABw"] = data[2]
