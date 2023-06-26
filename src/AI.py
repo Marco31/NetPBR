@@ -10,22 +10,11 @@ DEBUG = False
 
 from DQN import Agent
 from Utils import plotLearning
-#from gym_sdwan_stat.envs import sdwan_stat_env
 import gym
 import numpy as np
-#from networkEnv import NetworkEnv
 from SdwanEnv import SDWANEnv
 import time
 
-# Enregistrement de l'environnement
-
-#gym.register(
-#    id='NetworkEnv-v0',
-#    entry_point='networkEnv:NetworkEnv',
-#    kwargs={'threshold_a': 5, 'threshold_b': 7, 'threshold_c': 30, 'alpha': 30, #'beta': 0}
-#)
-
-# env = gym.make('NetworkEnv-v0')
 agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, n_actions=2, eps_end=0.01,input_dims=[3], lr=0.001)
 scores, eps_history,avg_scores = [], [], []
 n_games = 50
@@ -132,12 +121,7 @@ class StageAI:
           
                 score = 0
                 done = False
-                
-
-                #print(self.latency_avg)
-                #observation = self.env.reset(self.latency_avg, self.bandwidth,1)
-                
-                observation = self.env.reset(np.uniform(6,30), np.uniform(8,25),1)
+                observation=self.env.reset(np.uniform(6,30),np.uniform(8,25),1,flow={'443':'service_HTTP'})
             
                 if(modulo%2==0):
                     done=True
@@ -150,35 +134,27 @@ class StageAI:
                     
                     
                     action = agent.choose_action(observation)
-
-                    # observation_, reward, terminated, truncated = env.step(action)
                     observation_, reward, terminated, truncated = self.env.step(action)
-
                     done = terminated or truncated
                     score += reward
                     agent.store_transition(observation, action, reward,
                                            observation_, done)
                     agent.learn()
 
-                    # on passe à l'observation suivante
-                    observation = observation_
-                    #print("ob : ", observation)
-                    #print("action : ", action)
-                    # print("reward: " , reward)
+                    # We go to the next observation 
 
+                    observation = observation_
                     # on attribue aux champs l'action retenue
                     self.action = action
-
-               
                     # time.sleep(0.6)
                     if done:
                         k+=1
                         break
                 
+                    print("action : ", action)
+
                 modulo += 1  
-                done = False
-                
-                
+                done = False   
                 scores.append(score)
                 #print("la taille de scores est :",scores)
                 
@@ -192,7 +168,7 @@ class StageAI:
                       'epsilon %.2f' % agent.epsilon)
                       
 
-                ## Changement de lien
+                ## Link changes
 
                 if self.action == 0:
                     print("On envoie sur ethernet")
@@ -240,12 +216,7 @@ class StageAI:
             print("Applied")
             
             
-                
-            
-           
-            
-            
-            
+       
         x=[k+1 for k in range(len(scores))]
         print("trace de grapghe")
         filename='../Sdwan_train.png'
@@ -262,8 +233,8 @@ class StageAI:
             print("itération :", episode )
             latency_avg = np.random.uniform(10, 25)
             bandwidth = np.random.uniform(6, 30)
-            pck_loss = np.random.uniform(0, 1)
-            observation = self.env.reset(latency_avg, bandwidth, pck_loss)
+            observation = self.env.reset(latency_avg, bandwidth, 1,flow={'443':'service_HTTP'})
+            
             done = False
             score = 0
             while not done:
@@ -280,24 +251,11 @@ class StageAI:
                 
                 observation = observation_
                 
-                #done = terminated or truncated
-                #score += reward
-
-    
-    
-            # variable à implémenter
             scores.append(score)
             avg_score=np.mean(scores[:])
             avg_scores.append(avg_score)
             eps_history.append(agent.epsilon)
-            
-            # print('score training',score)
-            
         print("derniere valeur de epsilon :", agent.epsilon )
-        
-       # x=[k+1 for k in range(number_episode)]       
-       # filename = '../Sdwan.png'
-       # plotLearning(x,scores,eps_history,avg_scores,filename)
 
 
 
@@ -305,13 +263,13 @@ if __name__ == '__main__':
     print("Start AI")
 
 
-    # TEST lancement du main
+    # If you want to run without  a SSH connection you can uncomment this section
 
-    from multiprocessing import Process, Queue
-    import Controller
+    #from multiprocessing import Process, Queue
+    #import Controller
     
-    SAI = StageAI()
+    #SAI = StageAI()
     #
-    queueSCTR = Queue()
-    queueSAI = Queue()
-    SAI.stage4AI(queueSCTR, queueSAI)
+    #queueSCTR = Queue()
+    #queueSAI = Queue()
+    #SAI.stage4AI(queueSCTR, queueSAI)
