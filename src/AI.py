@@ -1,6 +1,6 @@
 """Module AI Manage AI thread and communicate with Controller thread."""
 
-__author__ = 'Marc VEYSSEYRE'
+__author__ = 'Marc VEYSSEYRE, Ayoub BOUASRIA'
 
 import time
 import ast
@@ -229,17 +229,6 @@ class StageAI:
                     else :
                         pre_queue = "0"
                         
-            
-            
-            #filename = 'home/user/Desktop/AI/netpbr/resources/Sdwan.png'
-    
-            # if (len(scores) == len(x)):
-            #    print("je trace le graphe")
-                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
-                #plotLearning(x[0:2],scores[0:2],eps_history[0:2],avg_scores[0:2],filename)
-                #plotLearning(x,scores,eps_history,avg_scores,filename)
-                #print("le graphe est tracé")
-            
 
             self.loop_nb +=1
             #time.sleep(1) # work

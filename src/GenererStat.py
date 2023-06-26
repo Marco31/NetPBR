@@ -6,6 +6,8 @@ from multiprocessing import Process, Queue, Manager
 # pertubations toutes les 5 secondes (aleatoires).
 # Ces valeurs sont placées dans une file d'attente pour être accessibles à d'autres processus
 
+__author__ = 'Mehdi BAKKALI'
+
 class ValeursStatistiques:
     def __init__(self, x, valeurs_queue, valeurs_list):
         self.x = x

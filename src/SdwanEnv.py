@@ -3,6 +3,8 @@ from gym import spaces
 import numpy as np
 from numpy.random import default_rng
 
+__author__ = 'Mehdi BAKKALI'
+
 ############################################################################################################
 # 1. La classe SDWANEnv hérite de la classe gym.Env.
 # Cette classe représente l'environnement d'apprentissage

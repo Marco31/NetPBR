@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import gym
 
+__author__ = 'Mehdi BAKKALI'
+
 def plotLearning(x, scores, epsilons, avg_scores, filename, lines=None):
     fig = plt.figure()
     ax = fig.add_subplot(111, label="1")

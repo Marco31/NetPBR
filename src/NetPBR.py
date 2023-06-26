@@ -10,6 +10,8 @@ from libs import measure_latency
 DEBUG = False
 
 # Following IP need to be change
+IP_abing_server = "192.168.202.6"
+
 
 # ssh cisco@192.168.8.254
 sdwan1 = {
@@ -207,7 +209,7 @@ def get_latency_3(cisco_addr_dest):
     
     DEBUG=False
     if not DEBUG:
-        latency_3_str = subprocess.run(['./src/libs/abing', '-d', "192.168.202.6", "-t", "1", "-n","1"], stdout=subprocess.PIPE, check=False)
+        latency_3_str = subprocess.run(['./src/libs/abing', '-d', IP_abing_server, "-t", "1", "-n","1"], stdout=subprocess.PIPE, check=False)
         
         #/home/user/Downloads/abing-master/Bin/x86_64
         #print("latency debug",latency_3_str)

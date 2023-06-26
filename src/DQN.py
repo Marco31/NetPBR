@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 
+__author__ = 'Mehdi BAKKALI'
 
 # 2 classes
 # agent has a deep q network and memory (learn from experience)
